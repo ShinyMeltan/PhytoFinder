@@ -1,4 +1,4 @@
-
+{
   "version": "2.0.0",
   "tasks": [
     {
@@ -21,3 +21,4 @@
       "detail": "Compile and run main.cpp into build folder"
     }
   ]
+}
