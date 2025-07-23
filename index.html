@@ -87,7 +87,7 @@
       return;
     }
 
-    const matches = plants.filter(plant => plant.toLowerCase().includes(query)).slice(0,5);
+    const matches = plants.filter(plant => plant.toLowerCase().startsWith(query)).slice(0, 5);
 
     if (matches.length === 0) {
       suggestionsDiv.style.display = "none";
