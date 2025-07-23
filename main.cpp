@@ -4,19 +4,24 @@
 #include <vector>
 #include <string>
 
-const int NUM_CHEMICALS = 8; 
+const int NUM_CHEMICALS = 10; 
 
 using ChemSet = std::bitset<NUM_CHEMICALS>;
 
 std::vector<std::string> chemicalList = {
     "Linalool", "Eugenol", "Camphor", "Thymol",
-    "Menthol", "Citral", "Myrcene", "Geraniol"
+    "Menthol", "Citral", "Myrcene", "Geraniol",
+    "Pinene", "Carvacrol"
 };
 
 std::unordered_map<std::string, ChemSet> plantMatrix = {
-    { "Basil",    ChemSet("00000011") },
-    { "Lavender", ChemSet("00000101") },
-    { "Thyme",    ChemSet("00001000") }
+    { "Basil",    ChemSet("00000011") },      // Linalool, Eugenol
+    { "Lavender", ChemSet("00000101") },      // Linalool, Camphor
+    { "Thyme",    ChemSet("00001000") },      // Thymol
+    { "Mint",     ChemSet("00010001") },      // Linalool, Menthol
+    { "Oregano",  ChemSet("10000001") },      // Linalool, Carvacrol
+    { "Rosemary", ChemSet("01000010") },      // Eugenol, Pinene
+    { "Sage",     ChemSet("00100100") }       // Linalool, Myrcene
 };
 
 std::vector<std::string> findSharedChemicals(const std::vector<std::string>& selectedPlants) {
