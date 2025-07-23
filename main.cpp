@@ -26,9 +26,9 @@ std::vector<std::string> findSharedChemicals(const std::vector<std::string>& sel
         common &= plantMatrix[selectedPlants[i]];
     }
     std::vector<std::string> result;
-    for (int i = 0; i < NUM_CHEMICALS; ++i) {
-        if (common.test(i)) {
-            result.push_back(chemicalList[i]);
+    for (int index = 0; index < NUM_CHEMICALS; ++index) {
+        if (common.test(index)) {
+            result.push_back(chemicalList[index]);
         }
     }
     return result;
