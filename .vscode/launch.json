@@ -3,6 +3,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug Program",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/path/to/your/program",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
             "name": "Launch Program",
             "type": "cppdbg",
             "request": "launch",
