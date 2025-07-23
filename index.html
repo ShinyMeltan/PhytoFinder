@@ -169,24 +169,30 @@
     margin-bottom: 6px;
   }
 
-  /* Fade in animation */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
   /* Fade out animation */
   @keyframes fadeOut {
     from { opacity: 1; }
     to { opacity: 0; }
   }
 
-  .fade-in {
-    animation: fadeIn 0.3s forwards;
-  }
-
   .fade-out {
     animation: fadeOut 0.3s forwards;
+  }
+
+  /* Grow in animation */
+  @keyframes growIn {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+  .grow-in {
+    animation: growIn 0.3s forwards;
+    transform-origin: left center;
   }
 </style>
 </head>
@@ -268,13 +274,15 @@
       });
     });
 
-    // After a short delay, add new tags with fade in
+    // After a short delay, add new tags with grow-in and prepend them (so new tags push existing right)
     setTimeout(() => {
       selectedPlantsDiv.innerHTML = "";
-      selectedPlants.forEach(plant => {
+      // Prepend: render in reverse order
+      for (let i = selectedPlants.length - 1; i >= 0; i--) {
+        const plant = selectedPlants[i];
         const span = document.createElement("span");
         span.textContent = plant;
-        span.classList.add("fade-in");
+        span.classList.add("grow-in");
         const removeBtn = document.createElement("span");
         removeBtn.textContent = "×";
         removeBtn.className = "remove-plant";
@@ -293,8 +301,13 @@
           }
         });
         span.appendChild(removeBtn);
-        selectedPlantsDiv.appendChild(span);
-      });
+        // Prepend: insert as first child
+        if (selectedPlantsDiv.firstChild) {
+          selectedPlantsDiv.insertBefore(span, selectedPlantsDiv.firstChild);
+        } else {
+          selectedPlantsDiv.appendChild(span);
+        }
+      }
     }, 300);
 
     saveSelectedPlants();
