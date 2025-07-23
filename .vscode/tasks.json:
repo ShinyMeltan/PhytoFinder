@@ -9,15 +9,16 @@
         "-std=c++17",
         "main.cpp",
         "-o",
-        "phytofinder",
+        "build/phytofinder",
         "&&",
-        "./phytofinder"
+        "./build/phytofinder"
       ],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "detail": "Compile and run main.cpp into build folder"
     }
   ]
 }
