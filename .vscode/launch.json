@@ -1,18 +1,94 @@
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug PhytoFinder",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/phytofinder",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "preLaunchTask": "Build & Run PhytoFinder"
+#include <iostream>
+#include <bitset>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm> // for std::transform
+#include <cctype>    // for std::tolower
+
+const int NUM_CHEMICALS = 10;
+
+using ChemSet = std::bitset<NUM_CHEMICALS>;
+
+std::vector<std::string> chemicalList = {
+    "Linalool", "Eugenol", "Camphor", "Thymol",
+    "Menthol", "Citral", "Myrcene", "Geraniol",
+    "Pinene", "Carvacrol"
+};
+
+// Helper to convert string to lowercase
+std::string toLower(const std::string& str) {
+    std::string res = str;
+    std::transform(res.begin(), res.end(), res.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    return res;
+}
+
+// Map plant name (lowercase) to chemical bitset
+std::unordered_map<std::string, ChemSet> plantMatrix = {
+    { "basil",    ChemSet("0000000011") }, // Linalool, Eugenol
+    { "lavender", ChemSet("0000000101") }, // Linalool, Camphor
+    { "thyme",    ChemSet("0000001000") }, // Thymol
+    { "mint",     ChemSet("0000010001") }, // Linalool, Menthol
+    { "oregano",  ChemSet("0000100001") }, // Linalool, Carvacrol
+    { "rosemary", ChemSet("0001000010") }, // Eugenol, Pinene
+    { "sage",     ChemSet("0010000001") }, // Linalool, Myrcene
+};
+
+std::vector<std::string> findSharedChemicals(const std::vector<std::string>& selectedPlants) {
+    if (selectedPlants.empty()) return {};
+
+    ChemSet common;
+    common.set(); // all bits set to 1 initially
+
+    for (const auto& plant : selectedPlants) {
+        auto it = plantMatrix.find(toLower(plant));
+        if (it != plantMatrix.end()) {
+            common &= it->second;
+        } else {
+            std::cout << "Warning: Plant \"" << plant << "\" not found in database.\n";
+        }
     }
-  ]
+
+    std::vector<std::string> result;
+    for (int i = 0; i < NUM_CHEMICALS; ++i) {
+        if (common.test(i)) {
+            result.push_back(chemicalList[i]);
+        }
+    }
+    return result;
+}
+
+int main() {
+    std::cout << "Available plants:\n";
+    for (const auto& [plant, _] : plantMatrix) {
+        std::cout << " - " << plant << "\n";
+    }
+
+    std::cout << "Enter plant names one per line. Type 'done' when finished:\n";
+    std::vector<std::string> selectedPlants;
+    std::string input;
+
+    while (true) {
+        std::getline(std::cin, input);
+        if (toLower(input) == "done") break;
+        if (plantMatrix.find(toLower(input)) == plantMatrix.end()) {
+            std::cout << "Plant \"" << input << "\" not recognized. Try again.\n";
+        } else {
+            selectedPlants.push_back(input);
+        }
+    }
+
+    auto sharedChemicals = findSharedChemicals(selectedPlants);
+
+    if (sharedChemicals.empty()) {
+        std::cout << "No common chemicals found or no plants selected.\n";
+    } else {
+        std::cout << "Common chemicals:\n";
+        for (const auto& chem : sharedChemicals) {
+            std::cout << " - " << chem << "\n";
+        }
+    }
+
+    return 0;
 }
