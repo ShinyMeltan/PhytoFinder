@@ -11,6 +11,26 @@
   label { display: block; margin: 5px 0; cursor: pointer; }
   button { margin-top: 20px; padding: 10px 15px; font-size: 1rem; }
   .results { font-weight: bold; }
+  #search-container { position: relative; }
+  #plant-search { width: 100%; padding: 8px; font-size: 1rem; box-sizing: border-box; }
+  #suggestions { 
+    position: absolute; 
+    top: 100%; 
+    left: 0; 
+    right: 0; 
+    border: 1px solid #ccc; 
+    background: white; 
+    max-height: 150px; 
+    overflow-y: auto; 
+    z-index: 1000; 
+  }
+  #suggestions div {
+    padding: 8px;
+    cursor: pointer;
+  }
+  #suggestions div:hover {
+    background-color: #eee;
+  }
 </style>
 </head>
 <body>
@@ -19,6 +39,10 @@
 
 <div class="plants">
   <h2>Select Plants</h2>
+  <div id="search-container">
+    <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
+    <div id="suggestions" style="display:none;"></div>
+  </div>
   <div id="plant-list"></div>
   <button id="find-common">Find Common Chemicals</button>
 </div>
@@ -48,6 +72,54 @@
     const label = document.createElement("label");
     label.innerHTML = `<input type="checkbox" value="${plant}"> ${plant}`;
     plantListDiv.appendChild(label);
+  });
+
+  // Search and suggestions functionality
+  const plantSearchInput = document.getElementById("plant-search");
+  const suggestionsDiv = document.getElementById("suggestions");
+  const plants = Object.keys(plantMatrix);
+
+  plantSearchInput.addEventListener("input", () => {
+    const query = plantSearchInput.value.trim().toLowerCase();
+    if (!query) {
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+
+    const matches = plants.filter(plant => plant.toLowerCase().includes(query)).slice(0,5);
+
+    if (matches.length === 0) {
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+
+    suggestionsDiv.innerHTML = matches.map(plant => `<div>${plant}</div>`).join("");
+    suggestionsDiv.style.display = "block";
+  });
+
+  suggestionsDiv.addEventListener("click", (e) => {
+    if (e.target && e.target.nodeName === "DIV") {
+      const selectedPlant = e.target.textContent;
+      // Check the checkbox for the selected plant
+      const checkbox = plantListDiv.querySelector(`input[value="${selectedPlant}"]`);
+      if (checkbox) {
+        checkbox.checked = true;
+      }
+      // Clear search and hide suggestions
+      plantSearchInput.value = "";
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      plantSearchInput.focus();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!document.getElementById("search-container").contains(e.target)) {
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+    }
   });
 
   function findSharedChemicals(selectedPlants) {
