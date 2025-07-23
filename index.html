@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PhytoFinder Web</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+  h1 { text-align: center; }
+  .plants, .results { margin-top: 20px; }
+  label { display: block; margin: 5px 0; cursor: pointer; }
+  button { margin-top: 20px; padding: 10px 15px; font-size: 1rem; }
+  .results { font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>PhytoFinder Web</h1>
+
+<div class="plants">
+  <h2>Select Plants</h2>
+  <div id="plant-list"></div>
+  <button id="find-common">Find Common Chemicals</button>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+  const chemicalList = [
+    "Linalool", "Eugenol", "Camphor", "Thymol",
+    "Menthol", "Citral", "Myrcene", "Geraniol",
+    "Pinene", "Carvacrol"
+  ];
+
+  const plantMatrix = {
+    Basil:    [1,1,0,0,0,0,0,0,0,0],
+    Lavender: [1,0,1,0,0,0,0,0,0,0],
+    Thyme:    [0,0,0,1,0,0,0,0,0,0],
+    Mint:     [1,0,0,0,1,0,0,0,0,0],
+    Oregano:  [1,0,0,0,0,0,0,0,0,1],
+    Rosemary: [0,1,0,0,0,0,0,0,1,0],
+    Sage:     [1,0,0,0,0,0,1,0,0,0]
+  };
+
+  // Populate plant checkboxes dynamically
+  const plantListDiv = document.getElementById("plant-list");
+  Object.keys(plantMatrix).forEach(plant => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${plant}"> ${plant}`;
+    plantListDiv.appendChild(label);
+  });
+
+  function findSharedChemicals(selectedPlants) {
+    if (selectedPlants.length === 0) return [];
+
+    let shared = [...plantMatrix[selectedPlants[0]]];
+    for (let i = 1; i < selectedPlants.length; i++) {
+      let current = plantMatrix[selectedPlants[i]];
+      shared = shared.map((bit, idx) => bit & current[idx]);
+    }
+
+    return chemicalList.filter((_, i) => shared[i] === 1);
+  }
+
+  document.getElementById("find-common").addEventListener("click", () => {
+    const selectedPlants = Array.from(document.querySelectorAll("#plant-list input:checked"))
+      .map(cb => cb.value);
+
+    const commonChemicals = findSharedChemicals(selectedPlants);
+
+    const resultsDiv = document.getElementById("results");
+    if (commonChemicals.length === 0) {
+      resultsDiv.textContent = "No common chemicals found among the selected plants.";
+    } else {
+      resultsDiv.innerHTML = "<h3>Common Chemicals:</h3><ul>" +
+        commonChemicals.map(c => `<li>${c}</li>`).join("") +
+        "</ul>";
+    }
+  });
+</script>
+
+</body>
+</html>
