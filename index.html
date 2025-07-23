@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PhytoFinder Web</title>
+<title>PhytoFinder</title>
 <style>
   body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
   h1 { text-align: center; }
@@ -53,7 +53,7 @@
 </head>
 <body>
 
-<h1>PhytoFinder Web</h1>
+<h1>PhytoFinder</h1>
 
 <div class="plants">
   <h2>Select Plants</h2>
@@ -112,24 +112,45 @@
     });
   }
 
+  // Store current matches for access in other events
+  let currentMatches = [];
   plantSearchInput.addEventListener("input", () => {
     const query = plantSearchInput.value.trim().toLowerCase();
     if (!query) {
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
+      currentMatches = [];
       return;
     }
 
-    const matches = plants.filter(plant => plant.toLowerCase().startsWith(query) && !selectedPlants.includes(plant)).slice(0, 5);
+    currentMatches = plants.filter(plant => plant.toLowerCase().startsWith(query) && !selectedPlants.includes(plant)).slice(0, 5);
 
-    if (matches.length === 0) {
+    if (currentMatches.length === 0) {
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
       return;
     }
 
-    suggestionsDiv.innerHTML = matches.map(plant => `<div>${plant}</div>`).join("");
+    suggestionsDiv.innerHTML = currentMatches.map(plant => `<div>${plant}</div>`).join("");
     suggestionsDiv.style.display = "block";
+  });
+
+  // Allow selecting first match with Enter key
+  plantSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && currentMatches && currentMatches.length > 0) {
+      const selectedPlant = currentMatches[0];
+      if (!selectedPlants.includes(selectedPlant)) {
+        selectedPlants.push(selectedPlant);
+        renderSelectedPlants();
+      }
+      // Clear search and hide suggestions
+      plantSearchInput.value = "";
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      plantSearchInput.focus();
+      // Prevent form submission or default Enter behavior
+      e.preventDefault();
+    }
   });
 
   suggestionsDiv.addEventListener("click", (e) => {
