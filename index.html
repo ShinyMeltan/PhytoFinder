@@ -105,6 +105,7 @@
     box-shadow: 0 2px 6px rgba(106, 153, 78, 0.3);
     user-select: none;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    opacity: 1;
   }
   #selected-plants span:hover {
     background-color: #8aa46a;
@@ -144,11 +145,15 @@
     transform: translateY(0);
     box-shadow: 0 4px 10px rgba(62, 92, 52, 0.5);
   }
+  button + button {
+    margin-left: 10px;
+  }
 
   .results {
     font-weight: 500;
     color: #344e41;
     margin-top: 35px;
+    opacity: 1;
   }
   .results h3 {
     font-weight: 400;
@@ -163,6 +168,26 @@
   .results li {
     margin-bottom: 6px;
   }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Fade out animation */
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s forwards;
+  }
+
+  .fade-out {
+    animation: fadeOut 0.3s forwards;
+  }
 </style>
 </head>
 <body>
@@ -176,7 +201,7 @@
     <div id="suggestions" style="display:none;"></div>
   </div>
   <div id="selected-plants"></div>
-  <button id="find-common">Find Common Chemicals</button>
+  <button id="find-common">Find Common Chemicals</button><button id="clear-all">Clear All</button>
 </div>
 
 <div class="results" id="results"></div>
@@ -204,31 +229,75 @@
   };
 
   const plants = Object.keys(plantMatrix);
-  const selectedPlants = [];
+  let selectedPlants = [];
 
   const plantSearchInput = document.getElementById("plant-search");
   const suggestionsDiv = document.getElementById("suggestions");
   const selectedPlantsDiv = document.getElementById("selected-plants");
+  const resultsDiv = document.getElementById("results");
+  const findCommonBtn = document.getElementById("find-common");
+  const clearAllBtn = document.getElementById("clear-all");
+
+  function saveSelectedPlants() {
+    localStorage.setItem("selectedPlants", JSON.stringify(selectedPlants));
+  }
+
+  function loadSelectedPlants() {
+    const saved = localStorage.getItem("selectedPlants");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          selectedPlants = parsed.filter(plant => plants.includes(plant));
+        }
+      } catch {
+        selectedPlants = [];
+      }
+    }
+  }
 
   function renderSelectedPlants() {
-    selectedPlantsDiv.innerHTML = "";
-    selectedPlants.forEach(plant => {
-      const span = document.createElement("span");
-      span.textContent = plant;
-      const removeBtn = document.createElement("span");
-      removeBtn.textContent = "×";
-      removeBtn.className = "remove-plant";
-      removeBtn.title = "Remove";
-      removeBtn.addEventListener("click", () => {
-        const index = selectedPlants.indexOf(plant);
-        if (index > -1) {
-          selectedPlants.splice(index, 1);
-          renderSelectedPlants();
+    // Clear existing tags with fade out animation
+    const existingSpans = Array.from(selectedPlantsDiv.children);
+    existingSpans.forEach(span => {
+      span.classList.add("fade-out");
+      span.addEventListener("animationend", () => {
+        if (span.parentElement) {
+          span.remove();
         }
       });
-      span.appendChild(removeBtn);
-      selectedPlantsDiv.appendChild(span);
     });
+
+    // After a short delay, add new tags with fade in
+    setTimeout(() => {
+      selectedPlantsDiv.innerHTML = "";
+      selectedPlants.forEach(plant => {
+        const span = document.createElement("span");
+        span.textContent = plant;
+        span.classList.add("fade-in");
+        const removeBtn = document.createElement("span");
+        removeBtn.textContent = "×";
+        removeBtn.className = "remove-plant";
+        removeBtn.title = "Remove";
+        removeBtn.addEventListener("click", () => {
+          const index = selectedPlants.indexOf(plant);
+          if (index > -1) {
+            // Animate removal
+            const spanToRemove = removeBtn.parentElement;
+            spanToRemove.classList.add("fade-out");
+            spanToRemove.addEventListener("animationend", () => {
+              selectedPlants.splice(index, 1);
+              saveSelectedPlants();
+              renderSelectedPlants();
+            }, {once: true});
+          }
+        });
+        span.appendChild(removeBtn);
+        selectedPlantsDiv.appendChild(span);
+      });
+    }, 300);
+
+    saveSelectedPlants();
   }
 
   // currentMatches holds the filtered list of plant search suggestions
@@ -323,20 +392,66 @@
     return chemicalList.filter((_, i) => shared[i] === 1);
   }
 
+  // Animate results appearance
+  function showResults(html) {
+    resultsDiv.classList.remove("fade-out");
+    resultsDiv.innerHTML = html;
+    resultsDiv.classList.add("fade-in");
+  }
+
+  // Animate results disappearance
+  function clearResults() {
+    if (!resultsDiv.innerHTML) return;
+    resultsDiv.classList.remove("fade-in");
+    resultsDiv.classList.add("fade-out");
+    resultsDiv.addEventListener("animationend", () => {
+      resultsDiv.innerHTML = "";
+      resultsDiv.classList.remove("fade-out");
+    }, {once: true});
+  }
+
   // When the user clicks the "Find Common Chemicals" button,
   // calculate and display the shared chemicals among the selected plants.
-  document.getElementById("find-common").addEventListener("click", () => {
+  findCommonBtn.addEventListener("click", () => {
     const commonChemicals = findSharedChemicals(selectedPlants);
 
-    const resultsDiv = document.getElementById("results");
     if (commonChemicals.length === 0) {
-      resultsDiv.textContent = "No common chemicals found among the selected plants.";
+      showResults("No common chemicals found among the selected plants.");
     } else {
-      resultsDiv.innerHTML = "<h3>Common Chemicals:</h3><ul>" +
+      showResults("<h3>Common Chemicals:</h3><ul>" +
         commonChemicals.map(c => `<li>${c}</li>`).join("") +
-        "</ul>";
+        "</ul>");
     }
   });
+
+  // Clear all selected plants and results
+  clearAllBtn.addEventListener("click", () => {
+    // Animate removal of all selected plants
+    const spans = Array.from(selectedPlantsDiv.children);
+    if (spans.length === 0) {
+      selectedPlants = [];
+      saveSelectedPlants();
+      clearResults();
+      return;
+    }
+    let removedCount = 0;
+    spans.forEach(span => {
+      span.classList.add("fade-out");
+      span.addEventListener("animationend", () => {
+        span.remove();
+        removedCount++;
+        if (removedCount === spans.length) {
+          selectedPlants = [];
+          saveSelectedPlants();
+          clearResults();
+        }
+      }, {once: true});
+    });
+  });
+
+  // On page load, load saved plants and render
+  loadSelectedPlants();
+  renderSelectedPlants();
 </script>
 
 </body>
