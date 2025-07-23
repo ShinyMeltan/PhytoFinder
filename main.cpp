@@ -62,9 +62,13 @@ int main() {
 
     auto shared = findSharedChemicals(selection);
 
-    std::cout << "\nCommon chemicals:\n";
-    for (const auto& chem : shared) {
-        std::cout << " - " << chem << '\n';
+    if (shared.empty()) {
+        std::cout << "\nNo common chemicals found among the selected plants.\n";
+    } else {
+        std::cout << "\nCommon chemicals:\n";
+        for (const auto& chem : shared) {
+            std::cout << " - " << chem << '\n';
+        }
     }
 
     return 0;
