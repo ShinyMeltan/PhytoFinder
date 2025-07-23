@@ -17,7 +17,8 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "detail": "Compile and run main.cpp"
     }
   ]
 }
