@@ -227,7 +227,7 @@
     const sciText = await sciResp.text();
 
     // Fetch common names CSV
-    const comResp = await fetch('data/Plant_COMMON_NAMES.csv');
+    const comResp = await fetch('data/common_names.csv');
     const comText = await comResp.text();
 
     // Parse scientific_names.csv
@@ -242,7 +242,7 @@
       }
     });
 
-    // Parse Plant_COMMON_NAMES.csv
+    // Parse common_names.csv
     // Expected format: fnfnum,common_name
     comText.trim().split('\n').forEach(line => {
       const [fnfnum, common] = line.split(',').map(s => s.trim());
@@ -251,8 +251,8 @@
       }
     });
 
-    // Load and parse Phytochemcials1.csv
-    const phyto1Resp = await fetch('data/Phytochemcials1.csv');
+    // Load and parse phytochemicals1.csv
+    const phyto1Resp = await fetch('data/phytochemicals1.csv');
     const phyto1Text = await phyto1Resp.text();
     phyto1Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
@@ -267,8 +267,8 @@
       }
     });
 
-    // Load and parse Phytochemcials2.csv
-    const phyto2Resp = await fetch('data/Phytochemcials2.csv');
+    // Load and parse phytochemicals2.csv
+    const phyto2Resp = await fetch('data/phytochemicals2.csv');
     const phyto2Text = await phyto2Resp.text();
     phyto2Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
