@@ -339,28 +339,22 @@
   });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-// Placeholder dataset to simulate loading from a CSV.
-// Replace this with actual parsing logic or a fetch call if using external CSVs.
-const fnfGenusSpeciesData = [
-  { fnfnum: 1001, genus: "Rosmarinus", species: "officinalis" },
-  { fnfnum: 1002, genus: "Mentha", species: "spicata" },
-  { fnfnum: 1003, genus: "Lavandula", species: "angustifolia" }
-];
+  const plantData = {};
 
-// plantData maps each FNFNUM (number) to a plant object with scientific name and an array of common names.
-const plantData = {};
-
-fnfGenusSpeciesData.forEach(entry => {
-  const fnf = Number(entry.fnfnum);
-  plantData[fnf] = {
-    scientific: `${entry.genus} ${entry.species}`,
-    common: [] // We'll fill this in during the next step
-  };
-});
-
-console.log("Generated plantData from FNFNUM + genus/species:", plantData);
+  Papa.parse("data/scientific_names.csv", {
+    download: true,
+    header: true,
+    complete: (results) => {
+      results.data.forEach(entry => {
+        const fnf = Number(entry.FNFNUM);
+        plantData[fnf] = {
+          scientific: `${entry.Genus} ${entry.Species}`,
+          common: [] // we’ll fill this in next
+        };
+      });
+      console.log("Loaded plantData from CSV:", plantData);
+    }
+  });
 </script>
-
-</body>
-</html>
