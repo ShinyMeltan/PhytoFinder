@@ -90,38 +90,6 @@
     color: #1b4332;
   }
 
-  #selected-plants {
-    margin-top: 15px;
-  }
-  #selected-plants span {
-    display: inline-flex;
-    align-items: center;
-    background-color: #a7c4a0;
-    border-radius: 9999px;
-    padding: 6px 14px;
-    margin: 5px 8px 5px 0;
-    font-weight: 600;
-    color: #1b4332;
-    box-shadow: 0 2px 6px rgba(106, 153, 78, 0.3);
-    user-select: none;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  #selected-plants span:hover {
-    background-color: #8aa46a;
-    box-shadow: 0 4px 12px rgba(106, 153, 78, 0.5);
-  }
-  #selected-plants span .remove-plant {
-    margin-left: 10px;
-    color: #3a0e0e;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.3s ease;
-  }
-  #selected-plants span .remove-plant:hover {
-    color: #7f1d1d;
-  }
-
   button {
     margin-top: 25px;
     padding: 12px 25px;
@@ -175,169 +143,9 @@
     <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
     <div id="suggestions" style="display:none;"></div>
   </div>
-  <div id="selected-plants"></div>
-  <button id="find-common">Find Common Chemicals</button>
 </div>
 
 <div class="results" id="results"></div>
-
-<script>
-  // chemicalList defines the master list of chemicals, in a specific order.
-  // Each index in this array corresponds to a column in the plantMatrix.
-  const chemicalList = [
-    "Linalool", "Eugenol", "Camphor", "Thymol",
-    "Menthol", "Citral", "Myrcene", "Geraniol",
-    "Pinene", "Carvacrol"
-  ];
-
-  // plantMatrix maps each plant to an array of 0s and 1s, where each position
-  // corresponds to the presence (1) or absence (0) of the chemical at that index
-  // in chemicalList. This acts as a binary "fingerprint" for each plant.
-  const plantMatrix = {
-    Basil:    [1,1,0,0,0,0,0,0,0,0],
-    Lavender: [1,0,1,0,0,0,0,0,0,0],
-    Thyme:    [0,0,0,1,0,0,0,0,0,0],
-    Mint:     [1,0,0,0,1,0,0,0,0,0],
-    Oregano:  [1,0,0,0,0,0,0,0,0,1],
-    Rosemary: [0,1,0,0,0,0,0,0,1,0],
-    Sage:     [1,0,0,0,0,0,1,0,0,0]
-  };
-
-  const plants = Object.keys(plantMatrix);
-  const selectedPlants = [];
-
-  const plantSearchInput = document.getElementById("plant-search");
-  const suggestionsDiv = document.getElementById("suggestions");
-  const selectedPlantsDiv = document.getElementById("selected-plants");
-
-  function renderSelectedPlants() {
-    selectedPlantsDiv.innerHTML = "";
-    selectedPlants.forEach(plant => {
-      const span = document.createElement("span");
-      span.textContent = plant;
-      const removeBtn = document.createElement("span");
-      removeBtn.textContent = "×";
-      removeBtn.className = "remove-plant";
-      removeBtn.title = "Remove";
-      removeBtn.addEventListener("click", () => {
-        const index = selectedPlants.indexOf(plant);
-        if (index > -1) {
-          selectedPlants.splice(index, 1);
-          renderSelectedPlants();
-        }
-      });
-      span.appendChild(removeBtn);
-      selectedPlantsDiv.appendChild(span);
-    });
-  }
-
-  // currentMatches holds the filtered list of plant search suggestions
-  // that match the user's input and are not already selected.
-  let currentMatches = [];
-  plantSearchInput.addEventListener("input", () => {
-    const query = plantSearchInput.value.trim().toLowerCase();
-    if (!query) {
-      suggestionsDiv.style.display = "none";
-      suggestionsDiv.innerHTML = "";
-      currentMatches = [];
-      return;
-    }
-
-    // Filter plants by input query, excluding those already selected.
-    currentMatches = plants.filter(plant => plant.toLowerCase().startsWith(query) && !selectedPlants.includes(plant)).slice(0, 5);
-
-    if (currentMatches.length === 0) {
-      suggestionsDiv.style.display = "none";
-      suggestionsDiv.innerHTML = "";
-      return;
-    }
-
-    // Render suggestions as clickable divs.
-    suggestionsDiv.innerHTML = currentMatches.map(plant => `<div>${plant}</div>`).join("");
-    suggestionsDiv.style.display = "block";
-  });
-
-  // Allow selecting the first suggestion by pressing Enter.
-  plantSearchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && currentMatches && currentMatches.length > 0) {
-      const selectedPlant = currentMatches[0];
-      if (!selectedPlants.includes(selectedPlant)) {
-        selectedPlants.push(selectedPlant);
-        renderSelectedPlants();
-      }
-      // Clear search and hide suggestions
-      plantSearchInput.value = "";
-      suggestionsDiv.style.display = "none";
-      suggestionsDiv.innerHTML = "";
-      plantSearchInput.focus();
-      // Prevent form submission or default Enter behavior
-      e.preventDefault();
-    }
-  });
-
-  // Handle clicking a suggestion to select a plant.
-  suggestionsDiv.addEventListener("click", (e) => {
-    if (e.target && e.target.nodeName === "DIV") {
-      const selectedPlant = e.target.textContent;
-      if (!selectedPlants.includes(selectedPlant)) {
-        selectedPlants.push(selectedPlant);
-        renderSelectedPlants();
-      }
-      // Clear search and hide suggestions
-      plantSearchInput.value = "";
-      suggestionsDiv.style.display = "none";
-      suggestionsDiv.innerHTML = "";
-      plantSearchInput.focus();
-    }
-  });
-
-  // Hide suggestions if clicking outside the search container.
-  document.addEventListener("click", (e) => {
-    if (!document.getElementById("search-container").contains(e.target)) {
-      suggestionsDiv.style.display = "none";
-      suggestionsDiv.innerHTML = "";
-    }
-  });
-
-  /**
-   * Finds chemicals shared by all selected plants.
-   * For each chemical (by index), checks if all selected plants have a 1 for that chemical.
-   * Uses bitwise intersection: ANDs each plant's chemical array together,
-   * resulting in 1 only where all selected plants have 1.
-   * Filters chemicalList to include only chemicals present in all selected plants.
-   *
-   * @param {string[]} selectedPlants - Array of selected plant names.
-   * @returns {string[]} Array of chemical names present in all selected plants.
-   */
-  function findSharedChemicals(selectedPlants) {
-    if (selectedPlants.length === 0) return [];
-
-    // Start with the chemical array of the first plant.
-    let shared = [...plantMatrix[selectedPlants[0]]];
-    // For each subsequent plant, perform a bitwise AND for each chemical.
-    for (let i = 1; i < selectedPlants.length; i++) {
-      let current = plantMatrix[selectedPlants[i]];
-      shared = shared.map((bit, idx) => bit & current[idx]);
-    }
-    // Return chemical names where the resulting shared array has a 1.
-    return chemicalList.filter((_, i) => shared[i] === 1);
-  }
-
-  // When the user clicks the "Find Common Chemicals" button,
-  // calculate and display the shared chemicals among the selected plants.
-  document.getElementById("find-common").addEventListener("click", () => {
-    const commonChemicals = findSharedChemicals(selectedPlants);
-
-    const resultsDiv = document.getElementById("results");
-    if (commonChemicals.length === 0) {
-      resultsDiv.textContent = "No common chemicals found among the selected plants.";
-    } else {
-      resultsDiv.innerHTML = "<h3>Common Chemicals:</h3><ul>" +
-        commonChemicals.map(c => `<li>${c}</li>`).join("") +
-        "</ul>";
-    }
-  });
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
@@ -357,4 +165,78 @@
       console.log("Loaded plantData from CSV:", plantData);
     }
   });
+
+  const plantSearchInput = document.getElementById("plant-search");
+  const suggestionsDiv = document.getElementById("suggestions");
+  const resultsDiv = document.getElementById("results");
+
+  // To hold current matches for keyboard selection
+  let currentMatches = [];
+
+  plantSearchInput.addEventListener("input", () => {
+    const query = plantSearchInput.value.trim().toLowerCase();
+    if (!query) {
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      currentMatches = [];
+      return;
+    }
+
+    // Filter plantData by scientific name matching the query
+    currentMatches = Object.values(plantData)
+      .filter(plant => plant.scientific.toLowerCase().startsWith(query))
+      .slice(0, 5);
+
+    if (currentMatches.length === 0) {
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+
+    // Render suggestions as clickable divs showing scientific names
+    suggestionsDiv.innerHTML = currentMatches.map(plant => `<div>${plant.scientific}</div>`).join("");
+    suggestionsDiv.style.display = "block";
+  });
+
+  // When user presses Enter, select the first suggestion and show in results
+  plantSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && currentMatches.length > 0) {
+      const selectedPlant = currentMatches[0];
+      displayPlantInfo(selectedPlant);
+      plantSearchInput.value = "";
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      plantSearchInput.focus();
+      e.preventDefault();
+    }
+  });
+
+  // When user clicks a suggestion, show that plant info in results
+  suggestionsDiv.addEventListener("click", (e) => {
+    if (e.target && e.target.nodeName === "DIV") {
+      const selectedName = e.target.textContent;
+      const selectedPlant = currentMatches.find(p => p.scientific === selectedName);
+      if (selectedPlant) {
+        displayPlantInfo(selectedPlant);
+      }
+      plantSearchInput.value = "";
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+      plantSearchInput.focus();
+    }
+  });
+
+  // Hide suggestions if clicking outside the search container
+  document.addEventListener("click", (e) => {
+    if (!document.getElementById("search-container").contains(e.target)) {
+      suggestionsDiv.style.display = "none";
+      suggestionsDiv.innerHTML = "";
+    }
+  });
+
+  function displayPlantInfo(plant) {
+    resultsDiv.innerHTML = `<h3>Selected Plant:</h3><p>${plant.scientific}</p>`;
+  }
 </script>
+</body>
+</html>
