@@ -257,8 +257,8 @@
     phyto1Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
-      const chemical = cols[1];
-      // Skip PPCO for now (cols[2])
+      const chemical = cols.slice(1, -1).join(',').trim();
+      // Skip PPCO for now (last column)
       if (fnfnum && chemical) {
         if (!fnfChemicals[fnfnum]) {
           fnfChemicals[fnfnum] = new Set();
@@ -273,8 +273,8 @@
     phyto2Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
-      const chemical = cols[1];
-      // Skip PPCO for now (cols[2])
+      const chemical = cols.slice(1, -1).join(',').trim();
+      // Skip PPCO for now (last column)
       if (fnfnum && chemical) {
         if (!fnfChemicals[fnfnum]) {
           fnfChemicals[fnfnum] = new Set();
