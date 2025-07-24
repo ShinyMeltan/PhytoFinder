@@ -205,8 +205,8 @@
   };
 
   // Variables for loaded data and mappings
-  let fnfData = {}; // fnfnum -> { scientific: string, commons: [] }
-  let nameToFnf = new Map(); // name (common or scientific) lowercased -> fnfnum
+  let fnfData = {}; // fnfnum -> { scientific: string, taxon: string, commons: [] }
+  let nameToFnf = new Map(); // name (common, scientific, or taxon) lowercased -> fnfnum
   let searchableNames = []; // array of { name, fnfnum }
   let plants = []; // will be replaced by searchableNames.map(n => n.name)
 
@@ -228,11 +228,14 @@
     const comText = await comResp.text();
 
     // Parse scientific_names.csv
-    // Expected format: fnfnum,scientific_name
+    // Expected format: fnfnum,scientific_name,...,TAXON (4th column)
     sciText.trim().split('\n').forEach(line => {
-      const [fnfnum, scientific] = line.split(',').map(s => s.trim());
+      const cols = line.split(',').map(s => s.trim());
+      const fnfnum = cols[0];
+      const scientific = cols[1];
+      const taxon = cols[3] || ""; // 4th column is TAXON
       if (fnfnum && scientific) {
-        fnfData[fnfnum] = { scientific: scientific, commons: [] };
+        fnfData[fnfnum] = { scientific: scientific, taxon: taxon, commons: [] };
       }
     });
 
@@ -255,7 +258,12 @@
         searchableNames.push({ name: commonName, fnfnum });
         nameToFnf.set(commonName.toLowerCase(), fnfnum);
       });
-      // Add scientific name
+      // Add taxon name for searching and display
+      if (entry.taxon) {
+        searchableNames.push({ name: entry.taxon, fnfnum });
+        nameToFnf.set(entry.taxon.toLowerCase(), fnfnum);
+      }
+      // Add scientific name for searching as well
       searchableNames.push({ name: entry.scientific, fnfnum });
       nameToFnf.set(entry.scientific.toLowerCase(), fnfnum);
     }
@@ -267,10 +275,11 @@
     plants = searchableNames.map(n => n.name);
   }
 
-  // Helper to get display name for a fnfnum: prefer first common, else scientific
+  // Helper to get display name for a fnfnum: prefer taxon, else first common, else scientific
   function getDisplayName(fnfnum) {
     const entry = fnfData[fnfnum];
     if (!entry) return fnfnum;
+    if (entry.taxon) return entry.taxon;
     if (entry.commons.length > 0) return entry.commons[0];
     return entry.scientific;
   }
@@ -320,7 +329,7 @@
       return;
     }
 
-    // Render suggestions as clickable divs with display names
+    // Render suggestions as clickable divs with display names (use taxon if available)
     suggestionsDiv.innerHTML = currentMatches.map(({name}) => `<div>${name}</div>`).join("");
     suggestionsDiv.style.display = "block";
   });
@@ -382,18 +391,18 @@
     if (selectedFnfnums.length === 0) return [];
 
     // Start with the chemical array of the first plant.
-    // Use scientific name keys in plantMatrix, so map fnfnum to scientific name
+    // Use taxon name keys in plantMatrix, so map fnfnum to taxon name
     const firstFnfnum = selectedFnfnums[0];
-    const firstSciName = fnfData[firstFnfnum]?.scientific;
-    if (!firstSciName || !plantMatrix[firstSciName]) return [];
-    let shared = [...plantMatrix[firstSciName]];
+    const firstTaxon = fnfData[firstFnfnum]?.taxon;
+    if (!firstTaxon || !plantMatrix[firstTaxon]) return [];
+    let shared = [...plantMatrix[firstTaxon]];
 
     // For each subsequent plant, perform a bitwise AND for each chemical.
     for (let i = 1; i < selectedFnfnums.length; i++) {
       const fnfnum = selectedFnfnums[i];
-      const sciName = fnfData[fnfnum]?.scientific;
-      if (!sciName || !plantMatrix[sciName]) return [];
-      let current = plantMatrix[sciName];
+      const taxon = fnfData[fnfnum]?.taxon;
+      if (!taxon || !plantMatrix[taxon]) return [];
+      let current = plantMatrix[taxon];
       shared = shared.map((bit, idx) => bit & current[idx]);
     }
     // Return chemical names where the resulting shared array has a 1.
