@@ -339,5 +339,28 @@
   });
 </script>
 
+<script>
+// Placeholder dataset to simulate loading from a CSV.
+// Replace this with actual parsing logic or a fetch call if using external CSVs.
+const fnfGenusSpeciesData = [
+  { fnfnum: 1001, genus: "Rosmarinus", species: "officinalis" },
+  { fnfnum: 1002, genus: "Mentha", species: "spicata" },
+  { fnfnum: 1003, genus: "Lavandula", species: "angustifolia" }
+];
+
+// plantData maps each FNFNUM (number) to a plant object with scientific name and an array of common names.
+const plantData = {};
+
+fnfGenusSpeciesData.forEach(entry => {
+  const fnf = Number(entry.fnfnum);
+  plantData[fnf] = {
+    scientific: `${entry.genus} ${entry.species}`,
+    common: [] // We'll fill this in during the next step
+  };
+});
+
+console.log("Generated plantData from FNFNUM + genus/species:", plantData);
+</script>
+
 </body>
 </html>
