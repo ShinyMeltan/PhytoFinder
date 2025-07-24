@@ -210,6 +210,9 @@
   let searchableNames = []; // array of { name, fnfnum }
   let plants = []; // will be replaced by searchableNames.map(n => n.name)
 
+  // New mapping for fnfnum to Set of chemicals
+  let fnfChemicals = {}; // fnfnum -> Set of chemical names
+
   const plantSearchInput = document.getElementById("plant-search");
   const suggestionsDiv = document.getElementById("suggestions");
   const selectedPlantsDiv = document.getElementById("selected-plants");
@@ -245,6 +248,38 @@
       const [fnfnum, common] = line.split(',').map(s => s.trim());
       if (fnfnum && common && fnfData[fnfnum]) {
         fnfData[fnfnum].commons.push(common);
+      }
+    });
+
+    // Load and parse Phytochemcials1.csv
+    const phyto1Resp = await fetch('data/Phytochemcials1.csv');
+    const phyto1Text = await phyto1Resp.text();
+    phyto1Text.trim().split('\n').forEach(line => {
+      const cols = line.split(',').map(s => s.trim());
+      const fnfnum = cols[0];
+      const chemical = cols[1];
+      // Skip PPCO for now (cols[2])
+      if (fnfnum && chemical) {
+        if (!fnfChemicals[fnfnum]) {
+          fnfChemicals[fnfnum] = new Set();
+        }
+        fnfChemicals[fnfnum].add(chemical);
+      }
+    });
+
+    // Load and parse Phytochemcials2.csv
+    const phyto2Resp = await fetch('data/Phytochemcials2.csv');
+    const phyto2Text = await phyto2Resp.text();
+    phyto2Text.trim().split('\n').forEach(line => {
+      const cols = line.split(',').map(s => s.trim());
+      const fnfnum = cols[0];
+      const chemical = cols[1];
+      // Skip PPCO for now (cols[2])
+      if (fnfnum && chemical) {
+        if (!fnfChemicals[fnfnum]) {
+          fnfChemicals[fnfnum] = new Set();
+        }
+        fnfChemicals[fnfnum].add(chemical);
       }
     });
 
@@ -379,10 +414,8 @@
 
   /**
    * Finds chemicals shared by all selected plants.
-   * For each chemical (by index), checks if all selected plants have a 1 for that chemical.
-   * Uses bitwise intersection: ANDs each plant's chemical array together,
-   * resulting in 1 only where all selected plants have 1.
-   * Filters chemicalList to include only chemicals present in all selected plants.
+   * Uses the fnfChemicals mapping of fnfnum to Set of chemicals.
+   * Returns the intersection of chemical sets for all selected plants.
    *
    * @param {string[]} selectedFnfnums - Array of selected plant fnfnum keys.
    * @returns {string[]} Array of chemical names present in all selected plants.
@@ -390,23 +423,20 @@
   function findSharedChemicals(selectedFnfnums) {
     if (selectedFnfnums.length === 0) return [];
 
-    // Start with the chemical array of the first plant.
-    // Use taxon name keys in plantMatrix, so map fnfnum to taxon name
-    const firstFnfnum = selectedFnfnums[0];
-    const firstTaxon = fnfData[firstFnfnum]?.taxon;
-    if (!firstTaxon || !plantMatrix[firstTaxon]) return [];
-    let shared = [...plantMatrix[firstTaxon]];
+    // Start with chemicals of the first selected plant
+    let sharedSet = fnfChemicals[selectedFnfnums[0]];
+    if (!sharedSet) return [];
 
-    // For each subsequent plant, perform a bitwise AND for each chemical.
+    // For each subsequent plant, intersect the sets
     for (let i = 1; i < selectedFnfnums.length; i++) {
-      const fnfnum = selectedFnfnums[i];
-      const taxon = fnfData[fnfnum]?.taxon;
-      if (!taxon || !plantMatrix[taxon]) return [];
-      let current = plantMatrix[taxon];
-      shared = shared.map((bit, idx) => bit & current[idx]);
+      const chemicals = fnfChemicals[selectedFnfnums[i]];
+      if (!chemicals) return [];
+      sharedSet = new Set([...sharedSet].filter(c => chemicals.has(c)));
+      if (sharedSet.size === 0) return [];
     }
-    // Return chemical names where the resulting shared array has a 1.
-    return chemicalList.filter((_, i) => shared[i] === 1);
+
+    // Return sorted array of shared chemicals
+    return Array.from(sharedSet).sort();
   }
 
   // When the user clicks the "Find Common Chemicals" button,
