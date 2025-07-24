@@ -1,90 +1,294 @@
-// Load PapaParse library externally in <head> for CSV parsing
-// <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PhytoFinder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
-(async function() {
-  // Helper function to fetch and parse CSV into array of objects
-  async function loadCSV(path) {
-    const res = await fetch(path);
-    const text = await res.text();
-    return new Promise((resolve, reject) => {
-      Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        complete: results => resolve(results.data),
-        error: err => reject(err),
-      });
-    });
+  body {
+    font-family: 'Inter', Arial, sans-serif;
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #f9faf9;
+    color: #2f3e46;
+    padding: 0 20px 40px;
   }
 
-  // Load scientific names and common names CSVs
-  const scientificData = await loadCSV('data/scientific_names.csv');
-  const commonNamesData = await loadCSV('data/Plant_COMMON_NAMES.csv');
+  h1 {
+    text-align: center;
+    font-weight: 300;
+    letter-spacing: 1.2px;
+    margin-bottom: 0.3em;
+    color: #1b4332;
+  }
 
-  // Build maps:
-  // fnfnum -> scientificName
-  const fnfnumToScientific = {};
-  scientificData.forEach(row => {
-    fnfnumToScientific[row.fnfnum] = row.scientific_name;
-  });
+  h2 {
+    font-weight: 300;
+    letter-spacing: 0.8px;
+    color: #344e41;
+    margin-bottom: 15px;
+  }
 
-  // fnfnum -> [common names]
-  const fnfnumToCommonNames = {};
-  commonNamesData.forEach(row => {
-    if (!fnfnumToCommonNames[row.fnfnum]) fnfnumToCommonNames[row.fnfnum] = [];
-    fnfnumToCommonNames[row.fnfnum].push(row.common_name);
-  });
+  .plants, .results {
+    margin-top: 30px;
+  }
 
-  // Chemical data (assume preloaded or define here)
-  // Here you should have your plantMatrix keyed by fnfnum strings
-  // For demo purposes, you can define dummy plantMatrix here or load similarly
-  // const plantMatrix = { 'fnfnum1': [...], 'fnfnum2': [...], ... };
+  label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+    color: #344e41;
+  }
 
-  // chemicalList as before
+  #search-container {
+    position: relative;
+  }
+
+  #plant-search {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    border: 1.8px solid #a7c4a0;
+    border-radius: 10px;
+    outline-offset: 2px;
+    outline-color: #6a994e;
+    background-color: #f0f5f1;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 1px 4px rgba(106, 153, 78, 0.15);
+  }
+  #plant-search:focus {
+    border-color: #52734d;
+    box-shadow: 0 0 8px rgba(82, 115, 77, 0.5);
+    background-color: #e6f0e8;
+  }
+
+  #suggestions {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 8px 0;
+  }
+  #suggestions div {
+    padding: 10px 20px;
+    cursor: pointer;
+    color: #344e41;
+    font-weight: 500;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  #suggestions div:hover {
+    background-color: #d1e7c2;
+    color: #1b4332;
+  }
+
+  #selected-plants {
+    margin-top: 15px;
+  }
+  #selected-plants span {
+    display: inline-flex;
+    align-items: center;
+    background-color: #a7c4a0;
+    border-radius: 9999px;
+    padding: 6px 14px;
+    margin: 5px 8px 5px 0;
+    font-weight: 600;
+    color: #1b4332;
+    box-shadow: 0 2px 6px rgba(106, 153, 78, 0.3);
+    user-select: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  #selected-plants span:hover {
+    background-color: #8aa46a;
+    box-shadow: 0 4px 12px rgba(106, 153, 78, 0.5);
+  }
+  #selected-plants span .remove-plant {
+    margin-left: 10px;
+    color: #3a0e0e;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.3s ease;
+  }
+  #selected-plants span .remove-plant:hover {
+    color: #7f1d1d;
+  }
+
+  button {
+    margin-top: 25px;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f0f5f1;
+    background-color: #52734d;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(82, 115, 77, 0.4);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+  }
+  button:hover {
+    background-color: #3e5c34;
+    box-shadow: 0 8px 20px rgba(62, 92, 52, 0.6);
+    transform: translateY(-2px);
+  }
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(62, 92, 52, 0.5);
+  }
+
+  .results {
+    font-weight: 500;
+    color: #344e41;
+    margin-top: 35px;
+  }
+  .results h3 {
+    font-weight: 400;
+    color: #52734d;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .results ul {
+    padding-left: 20px;
+    color: #344e41;
+  }
+  .results li {
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>PhytoFinder</h1>
+
+<div class="plants">
+  <h2>Select Plants</h2>
+  <div id="search-container">
+    <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
+    <div id="suggestions" style="display:none;"></div>
+  </div>
+  <div id="selected-plants"></div>
+  <button id="find-common">Find Common Chemicals</button>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+  // chemicalList defines the master list of chemicals, in a specific order.
+  // Each index in this array corresponds to a column in the plantMatrix.
   const chemicalList = [
     "Linalool", "Eugenol", "Camphor", "Thymol",
     "Menthol", "Citral", "Myrcene", "Geraniol",
     "Pinene", "Carvacrol"
   ];
 
-  // For demonstration, dummy plantMatrix (replace with your real data keyed by fnfnum)
+  // plantMatrix maps each plant to an array of 0s and 1s, where each position
+  // corresponds to the presence (1) or absence (0) of the chemical at that index
+  // in chemicalList. This acts as a binary "fingerprint" for each plant.
+  // This original matrix uses scientific names as keys.
   const plantMatrix = {
-    '1': [1,1,0,0,0,0,0,0,0,0], // Example fnfnum 1
-    '2': [1,0,1,0,0,0,0,0,0,0],
-    // ...
+    Basil:    [1,1,0,0,0,0,0,0,0,0],
+    Lavender: [1,0,1,0,0,0,0,0,0,0],
+    Thyme:    [0,0,0,1,0,0,0,0,0,0],
+    Mint:     [1,0,0,0,1,0,0,0,0,0],
+    Oregano:  [1,0,0,0,0,0,0,0,0,1],
+    Rosemary: [0,1,0,0,0,0,0,0,1,0],
+    Sage:     [1,0,0,0,0,0,1,0,0,0]
   };
 
-  // Build combined searchable list: array of objects
-  // Each with { fnfnum, scientificName, commonNames, searchStrings }
-  const plants = Object.keys(fnfnumToScientific).map(fnfnum => {
-    const sciName = fnfnumToScientific[fnfnum];
-    const commonNames = fnfnumToCommonNames[fnfnum] || [];
-    // Prepare lowercased search strings
-    const searchStrings = [sciName.toLowerCase(), ...commonNames.map(n => n.toLowerCase())];
-    return { fnfnum, scientificName: sciName, commonNames, searchStrings };
-  });
+  // Variables for loaded data and mappings
+  let fnfData = {}; // fnfnum -> { scientific: string, commons: [] }
+  let nameToFnf = new Map(); // name (common or scientific) lowercased -> fnfnum
+  let searchableNames = []; // array of { name, fnfnum }
+  let plants = []; // will be replaced by searchableNames.map(n => n.name)
 
-  const selectedFnfnumbers = [];
-
-  // DOM refs
   const plantSearchInput = document.getElementById("plant-search");
   const suggestionsDiv = document.getElementById("suggestions");
   const selectedPlantsDiv = document.getElementById("selected-plants");
 
+  // Selected plants by fnfnum
+  const selectedPlants = [];
+
+  // Load and parse CSVs, then build mappings
+  async function loadPlantData() {
+    // Fetch scientific names CSV
+    const sciResp = await fetch('data/scientific_names.csv');
+    const sciText = await sciResp.text();
+
+    // Fetch common names CSV
+    const comResp = await fetch('data/Plant_COMMON_NAMES.csv');
+    const comText = await comResp.text();
+
+    // Parse scientific_names.csv
+    // Expected format: fnfnum,scientific_name
+    sciText.trim().split('\n').forEach(line => {
+      const [fnfnum, scientific] = line.split(',').map(s => s.trim());
+      if (fnfnum && scientific) {
+        fnfData[fnfnum] = { scientific: scientific, commons: [] };
+      }
+    });
+
+    // Parse Plant_COMMON_NAMES.csv
+    // Expected format: fnfnum,common_name
+    comText.trim().split('\n').forEach(line => {
+      const [fnfnum, common] = line.split(',').map(s => s.trim());
+      if (fnfnum && common && fnfData[fnfnum]) {
+        fnfData[fnfnum].commons.push(common);
+      }
+    });
+
+    // Build searchableNames array and nameToFnf map
+    searchableNames = [];
+    nameToFnf.clear();
+    for (const fnfnum in fnfData) {
+      const entry = fnfData[fnfnum];
+      // Add common names
+      entry.commons.forEach(commonName => {
+        searchableNames.push({ name: commonName, fnfnum });
+        nameToFnf.set(commonName.toLowerCase(), fnfnum);
+      });
+      // Add scientific name
+      searchableNames.push({ name: entry.scientific, fnfnum });
+      nameToFnf.set(entry.scientific.toLowerCase(), fnfnum);
+    }
+
+    // Sort searchableNames alphabetically by name for better UX
+    searchableNames.sort((a,b) => a.name.localeCompare(b.name));
+
+    // Replace plants array with all names
+    plants = searchableNames.map(n => n.name);
+  }
+
+  // Helper to get display name for a fnfnum: prefer first common, else scientific
+  function getDisplayName(fnfnum) {
+    const entry = fnfData[fnfnum];
+    if (!entry) return fnfnum;
+    if (entry.commons.length > 0) return entry.commons[0];
+    return entry.scientific;
+  }
+
+  // Render selected plants by their display names
   function renderSelectedPlants() {
     selectedPlantsDiv.innerHTML = "";
-    selectedFnfnumbers.forEach(fnfnum => {
-      const plantData = plants.find(p => p.fnfnum === fnfnum);
-      if (!plantData) return;
+    selectedPlants.forEach(fnfnum => {
       const span = document.createElement("span");
-      span.textContent = `${plantData.scientificName} (${plantData.commonNames.join(', ')})`;
+      span.textContent = getDisplayName(fnfnum);
       const removeBtn = document.createElement("span");
       removeBtn.textContent = "×";
       removeBtn.className = "remove-plant";
       removeBtn.title = "Remove";
       removeBtn.addEventListener("click", () => {
-        const index = selectedFnfnumbers.indexOf(fnfnum);
+        const index = selectedPlants.indexOf(fnfnum);
         if (index > -1) {
-          selectedFnfnumbers.splice(index, 1);
+          selectedPlants.splice(index, 1);
           renderSelectedPlants();
         }
       });
@@ -93,7 +297,9 @@
     });
   }
 
+  // currentMatches holds filtered suggestions as objects {name, fnfnum}
   let currentMatches = [];
+
   plantSearchInput.addEventListener("input", () => {
     const query = plantSearchInput.value.trim().toLowerCase();
     if (!query) {
@@ -103,10 +309,9 @@
       return;
     }
 
-    // Match plants if any searchStrings start with query, exclude selected
-    currentMatches = plants.filter(p =>
-      p.searchStrings.some(s => s.startsWith(query))
-      && !selectedFnfnumbers.includes(p.fnfnum)
+    // Filter searchableNames by input query, excluding those whose fnfnum is already selected.
+    currentMatches = searchableNames.filter(({name, fnfnum}) => 
+      name.toLowerCase().startsWith(query) && !selectedPlants.includes(fnfnum)
     ).slice(0, 5);
 
     if (currentMatches.length === 0) {
@@ -115,32 +320,39 @@
       return;
     }
 
-    suggestionsDiv.innerHTML = currentMatches.map(p => `<div data-fnfnum="${p.fnfnum}">${p.scientificName} (${p.commonNames.join(', ')})</div>`).join("");
+    // Render suggestions as clickable divs with display names
+    suggestionsDiv.innerHTML = currentMatches.map(({name}) => `<div>${name}</div>`).join("");
     suggestionsDiv.style.display = "block";
   });
 
+  // Allow selecting the first suggestion by pressing Enter.
   plantSearchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && currentMatches.length > 0) {
-      const fnfnum = currentMatches[0].fnfnum;
-      if (!selectedFnfnumbers.includes(fnfnum)) {
-        selectedFnfnumbers.push(fnfnum);
+    if (e.key === "Enter" && currentMatches && currentMatches.length > 0) {
+      const selectedFnfnum = currentMatches[0].fnfnum;
+      if (!selectedPlants.includes(selectedFnfnum)) {
+        selectedPlants.push(selectedFnfnum);
         renderSelectedPlants();
       }
+      // Clear search and hide suggestions
       plantSearchInput.value = "";
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
       plantSearchInput.focus();
+      // Prevent form submission or default Enter behavior
       e.preventDefault();
     }
   });
 
+  // Handle clicking a suggestion to select a plant.
   suggestionsDiv.addEventListener("click", (e) => {
-    if (e.target && e.target.dataset && e.target.dataset.fnfnum) {
-      const fnfnum = e.target.dataset.fnfnum;
-      if (!selectedFnfnumbers.includes(fnfnum)) {
-        selectedFnfnumbers.push(fnfnum);
+    if (e.target && e.target.nodeName === "DIV") {
+      const clickedName = e.target.textContent;
+      const fnfnum = nameToFnf.get(clickedName.toLowerCase());
+      if (fnfnum && !selectedPlants.includes(fnfnum)) {
+        selectedPlants.push(fnfnum);
         renderSelectedPlants();
       }
+      // Clear search and hide suggestions
       plantSearchInput.value = "";
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
@@ -148,26 +360,50 @@
     }
   });
 
-  document.addEventListener("click", e => {
+  // Hide suggestions if clicking outside the search container.
+  document.addEventListener("click", (e) => {
     if (!document.getElementById("search-container").contains(e.target)) {
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
     }
   });
 
-  function findSharedChemicals(selectedFnfnumbers) {
-    if (selectedFnfnumbers.length === 0) return [];
+  /**
+   * Finds chemicals shared by all selected plants.
+   * For each chemical (by index), checks if all selected plants have a 1 for that chemical.
+   * Uses bitwise intersection: ANDs each plant's chemical array together,
+   * resulting in 1 only where all selected plants have 1.
+   * Filters chemicalList to include only chemicals present in all selected plants.
+   *
+   * @param {string[]} selectedFnfnums - Array of selected plant fnfnum keys.
+   * @returns {string[]} Array of chemical names present in all selected plants.
+   */
+  function findSharedChemicals(selectedFnfnums) {
+    if (selectedFnfnums.length === 0) return [];
 
-    let shared = [...plantMatrix[selectedFnfnumbers[0]]];
-    for (let i = 1; i < selectedFnfnumbers.length; i++) {
-      let current = plantMatrix[selectedFnfnumbers[i]];
+    // Start with the chemical array of the first plant.
+    // Use scientific name keys in plantMatrix, so map fnfnum to scientific name
+    const firstFnfnum = selectedFnfnums[0];
+    const firstSciName = fnfData[firstFnfnum]?.scientific;
+    if (!firstSciName || !plantMatrix[firstSciName]) return [];
+    let shared = [...plantMatrix[firstSciName]];
+
+    // For each subsequent plant, perform a bitwise AND for each chemical.
+    for (let i = 1; i < selectedFnfnums.length; i++) {
+      const fnfnum = selectedFnfnums[i];
+      const sciName = fnfData[fnfnum]?.scientific;
+      if (!sciName || !plantMatrix[sciName]) return [];
+      let current = plantMatrix[sciName];
       shared = shared.map((bit, idx) => bit & current[idx]);
     }
+    // Return chemical names where the resulting shared array has a 1.
     return chemicalList.filter((_, i) => shared[i] === 1);
   }
 
+  // When the user clicks the "Find Common Chemicals" button,
+  // calculate and display the shared chemicals among the selected plants.
   document.getElementById("find-common").addEventListener("click", () => {
-    const commonChemicals = findSharedChemicals(selectedFnfnumbers);
+    const commonChemicals = findSharedChemicals(selectedPlants);
 
     const resultsDiv = document.getElementById("results");
     if (commonChemicals.length === 0) {
@@ -178,4 +414,11 @@
         "</ul>";
     }
   });
-})();
+
+  // Initialize by loading plant data
+  loadPlantData();
+
+</script>
+
+</body>
+</html>
