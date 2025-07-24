@@ -263,9 +263,9 @@
         searchableNames.push({ name: entry.taxon, fnfnum });
         nameToFnf.set(entry.taxon.toLowerCase(), fnfnum);
       }
-      // Add scientific name for searching as well
-      searchableNames.push({ name: entry.scientific, fnfnum });
-      nameToFnf.set(entry.scientific.toLowerCase(), fnfnum);
+      // Removed adding scientific names to searchableNames and nameToFnf
+      // searchableNames.push({ name: entry.scientific, fnfnum });
+      // nameToFnf.set(entry.scientific.toLowerCase(), fnfnum);
     }
 
     // Sort searchableNames alphabetically by name for better UX
