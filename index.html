@@ -242,7 +242,8 @@
     } catch (err) {
       console.error("Failed to fetch common_names.csv:", err);
     }
-
+    console.log("Common names parsed:", fnfData);
+    console.log("searchableNames:", searchableNames.map(n => n.name));
     // Parse scientific_names.csv
     // Expected format: fnfnum,scientific_name,...,TAXON (4th column)
     sciText.trim().split('\n').forEach(line => {
