@@ -222,13 +222,26 @@
 
   // Load and parse CSVs, then build mappings
   async function loadPlantData() {
+    console.log("Loading plant data...");
     // Fetch scientific names CSV
-    const sciResp = await fetch('data/scientific_names.csv');
-    const sciText = await sciResp.text();
+    let sciText = "";
+    try {
+      const sciResp = await fetch('data/scientific_names.csv');
+      if (!sciResp.ok) throw new Error(`HTTP error! Status: ${sciResp.status}`);
+      sciText = await sciResp.text();
+    } catch (err) {
+      console.error("Failed to fetch scientific_names.csv:", err);
+    }
 
     // Fetch common names CSV
-    const comResp = await fetch('data/common_names.csv');
-    const comText = await comResp.text();
+    let comText = "";
+    try {
+      const comResp = await fetch('data/common_names.csv');
+      if (!comResp.ok) throw new Error(`HTTP error! Status: ${comResp.status}`);
+      comText = await comResp.text();
+    } catch (err) {
+      console.error("Failed to fetch common_names.csv:", err);
+    }
 
     // Parse scientific_names.csv
     // Expected format: fnfnum,scientific_name,...,TAXON (4th column)
@@ -254,8 +267,14 @@
     });
 
     // Load and parse phytochemicals1.csv
-    const phyto1Resp = await fetch('data/phytochemicals1.csv');
-    const phyto1Text = await phyto1Resp.text();
+    let phyto1Text = "";
+    try {
+      const phyto1Resp = await fetch('data/phytochemicals1.csv');
+      if (!phyto1Resp.ok) throw new Error(`HTTP error! Status: ${phyto1Resp.status}`);
+      phyto1Text = await phyto1Resp.text();
+    } catch (err) {
+      console.error("Failed to fetch phytochemicals1.csv:", err);
+    }
     phyto1Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
@@ -270,8 +289,14 @@
     });
 
     // Load and parse phytochemicals2.csv
-    const phyto2Resp = await fetch('data/phytochemicals2.csv');
-    const phyto2Text = await phyto2Resp.text();
+    let phyto2Text = "";
+    try {
+      const phyto2Resp = await fetch('data/phytochemicals2.csv');
+      if (!phyto2Resp.ok) throw new Error(`HTTP error! Status: ${phyto2Resp.status}`);
+      phyto2Text = await phyto2Resp.text();
+    } catch (err) {
+      console.error("Failed to fetch phytochemicals2.csv:", err);
+    }
     phyto2Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
