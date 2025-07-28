@@ -244,10 +244,18 @@
 
     // Parse common_names.csv
     // Expected format: fnfnum,common_name
+    // Only add each common name once per fnfnum, and do not overwrite existing entries
+    const addedCommons = new Set();
     comText.trim().split('\n').forEach(line => {
       const [fnfnum, common] = line.split(',').map(s => s.trim());
-      if (fnfnum && common && fnfData[fnfnum]) {
+      if (
+        fnfnum && common && fnfData[fnfnum]
+        && !addedCommons.has(fnfnum + '|' + common.toLowerCase())
+      ) {
         fnfData[fnfnum].commons.push(common);
+        searchableNames.push({ name: common, fnfnum });
+        nameToFnf.set(common.toLowerCase(), fnfnum);
+        addedCommons.add(fnfnum + '|' + common.toLowerCase());
       }
     });
 
