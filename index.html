@@ -182,68 +182,37 @@
 <div class="results" id="results"></div>
 
 <script>
-  // chemicalList defines the master list of chemicals, in a specific order.
-  // Each index in this array corresponds to a column in the plantMatrix.
-  const chemicalList = [
-    "Linalool", "Eugenol", "Camphor", "Thymol",
-    "Menthol", "Citral", "Myrcene", "Geraniol",
-    "Pinene", "Carvacrol"
-  ];
 
-  // plantMatrix maps each plant to an array of 0s and 1s, where each position
-  // corresponds to the presence (1) or absence (0) of the chemical at that index
-  // in chemicalList. This acts as a binary "fingerprint" for each plant.
-  // This original matrix uses scientific names as keys.
-  const plantMatrix = {
-    Basil:    [1,1,0,0,0,0,0,0,0,0],
-    Lavender: [1,0,1,0,0,0,0,0,0,0],
-    Thyme:    [0,0,0,1,0,0,0,0,0,0],
-    Mint:     [1,0,0,0,1,0,0,0,0,0],
-    Oregano:  [1,0,0,0,0,0,0,0,0,1],
-    Rosemary: [0,1,0,0,0,0,0,0,1,0],
-    Sage:     [1,0,0,0,0,0,1,0,0,0]
-  };
+  let fnfData = {};
+  let nameToFnf = new Map();
+  let searchableNames = [];
+  let plants = [];
 
-  // Variables for loaded data and mappings
-  let fnfData = {}; // fnfnum -> { scientific: string, taxon: string, commons: [] }
-  let nameToFnf = new Map(); // name (common, scientific, or taxon) lowercased -> fnfnum
-  let searchableNames = []; // array of { name, fnfnum }
-  let plants = []; // will be replaced by searchableNames.map(n => n.name)
-
-  // New mapping for fnfnum to Set of chemicals
-  let fnfChemicals = {}; // fnfnum -> Set of chemical names
+  let fnfChemicals = {};
 
   const plantSearchInput = document.getElementById("plant-search");
   const suggestionsDiv = document.getElementById("suggestions");
   const selectedPlantsDiv = document.getElementById("selected-plants");
 
-  // Selected plants by fnfnum
   const selectedPlants = [];
 
-  // Load and parse CSVs, then build mappings
   async function loadPlantData() {
-    // Fetch scientific names CSV
     const sciResp = await fetch('data/scientific_names.csv');
     const sciText = await sciResp.text();
 
-    // Fetch common names CSV
-    const comResp = await fetch('data/Plant_COMMON_NAMES.csv');
+    const comResp = await fetch('data/common_names.csv');
     const comText = await comResp.text();
 
-    // Parse scientific_names.csv
-    // Expected format: fnfnum,scientific_name,...,TAXON (4th column)
     sciText.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
       const scientific = cols[1];
-      const taxon = cols[3] || ""; // 4th column is TAXON
+      const taxon = cols[3] || "";
       if (fnfnum && scientific) {
         fnfData[fnfnum] = { scientific: scientific, taxon: taxon, commons: [] };
       }
     });
 
-    // Parse Plant_COMMON_NAMES.csv
-    // Expected format: fnfnum,common_name
     comText.trim().split('\n').forEach(line => {
       const [fnfnum, common] = line.split(',').map(s => s.trim());
       if (fnfnum && common && fnfData[fnfnum]) {
@@ -251,14 +220,12 @@
       }
     });
 
-    // Load and parse Phytochemcials1.csv
-    const phyto1Resp = await fetch('data/Phytochemcials1.csv');
+    const phyto1Resp = await fetch('data/phytochemicals1.csv');
     const phyto1Text = await phyto1Resp.text();
     phyto1Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
       const chemical = cols.slice(1, -1).join(',').trim();
-      // Skip PPCO for now (last column)
       if (fnfnum && chemical) {
         if (!fnfChemicals[fnfnum]) {
           fnfChemicals[fnfnum] = new Set();
@@ -267,14 +234,12 @@
       }
     });
 
-    // Load and parse Phytochemcials2.csv
-    const phyto2Resp = await fetch('data/Phytochemcials2.csv');
+    const phyto2Resp = await fetch('data/phytochemicals2.csv');
     const phyto2Text = await phyto2Resp.text();
     phyto2Text.trim().split('\n').forEach(line => {
       const cols = line.split(',').map(s => s.trim());
       const fnfnum = cols[0];
       const chemical = cols.slice(1, -1).join(',').trim();
-      // Skip PPCO for now (last column)
       if (fnfnum && chemical) {
         if (!fnfChemicals[fnfnum]) {
           fnfChemicals[fnfnum] = new Set();
@@ -283,34 +248,28 @@
       }
     });
 
-    // Build searchableNames array and nameToFnf map
     searchableNames = [];
     nameToFnf.clear();
     for (const fnfnum in fnfData) {
       const entry = fnfData[fnfnum];
-      // Add common names
       entry.commons.forEach(commonName => {
-        searchableNames.push({ name: commonName, fnfnum });
-        nameToFnf.set(commonName.toLowerCase(), fnfnum);
+        const lower = commonName.toLowerCase();
+        if (!nameToFnf.has(lower)) {
+          searchableNames.push({ name: commonName, fnfnum });
+          nameToFnf.set(lower, fnfnum);
+        }
       });
-      // Add taxon name for searching and display
       if (entry.taxon) {
         searchableNames.push({ name: entry.taxon, fnfnum });
         nameToFnf.set(entry.taxon.toLowerCase(), fnfnum);
       }
-      // Removed adding scientific names to searchableNames and nameToFnf
-      // searchableNames.push({ name: entry.scientific, fnfnum });
-      // nameToFnf.set(entry.scientific.toLowerCase(), fnfnum);
     }
 
-    // Sort searchableNames alphabetically by name for better UX
     searchableNames.sort((a,b) => a.name.localeCompare(b.name));
 
-    // Replace plants array with all names
     plants = searchableNames.map(n => n.name);
   }
 
-  // Helper to get display name for a fnfnum: prefer taxon, else first common, else scientific
   function getDisplayName(fnfnum) {
     const entry = fnfData[fnfnum];
     if (!entry) return fnfnum;
@@ -319,7 +278,6 @@
     return entry.scientific;
   }
 
-  // Render selected plants by their display names
   function renderSelectedPlants() {
     selectedPlantsDiv.innerHTML = "";
     selectedPlants.forEach(fnfnum => {
@@ -341,7 +299,6 @@
     });
   }
 
-  // currentMatches holds filtered suggestions as objects {name, fnfnum}
   let currentMatches = [];
 
   plantSearchInput.addEventListener("input", () => {
@@ -353,7 +310,6 @@
       return;
     }
 
-    // Filter searchableNames by input query, excluding those whose fnfnum is already selected.
     currentMatches = searchableNames.filter(({name, fnfnum}) => 
       name.toLowerCase().startsWith(query) && !selectedPlants.includes(fnfnum)
     ).slice(0, 5);
@@ -364,12 +320,10 @@
       return;
     }
 
-    // Render suggestions as clickable divs with display names (use taxon if available)
     suggestionsDiv.innerHTML = currentMatches.map(({name}) => `<div>${name}</div>`).join("");
     suggestionsDiv.style.display = "block";
   });
 
-  // Allow selecting the first suggestion by pressing Enter.
   plantSearchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && currentMatches && currentMatches.length > 0) {
       const selectedFnfnum = currentMatches[0].fnfnum;
@@ -377,17 +331,14 @@
         selectedPlants.push(selectedFnfnum);
         renderSelectedPlants();
       }
-      // Clear search and hide suggestions
       plantSearchInput.value = "";
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
       plantSearchInput.focus();
-      // Prevent form submission or default Enter behavior
       e.preventDefault();
     }
   });
 
-  // Handle clicking a suggestion to select a plant.
   suggestionsDiv.addEventListener("click", (e) => {
     if (e.target && e.target.nodeName === "DIV") {
       const clickedName = e.target.textContent;
@@ -396,7 +347,6 @@
         selectedPlants.push(fnfnum);
         renderSelectedPlants();
       }
-      // Clear search and hide suggestions
       plantSearchInput.value = "";
       suggestionsDiv.style.display = "none";
       suggestionsDiv.innerHTML = "";
@@ -404,7 +354,6 @@
     }
   });
 
-  // Hide suggestions if clicking outside the search container.
   document.addEventListener("click", (e) => {
     if (!document.getElementById("search-container").contains(e.target)) {
       suggestionsDiv.style.display = "none";
@@ -412,22 +361,12 @@
     }
   });
 
-  /**
-   * Finds chemicals shared by all selected plants.
-   * Uses the fnfChemicals mapping of fnfnum to Set of chemicals.
-   * Returns the intersection of chemical sets for all selected plants.
-   *
-   * @param {string[]} selectedFnfnums - Array of selected plant fnfnum keys.
-   * @returns {string[]} Array of chemical names present in all selected plants.
-   */
   function findSharedChemicals(selectedFnfnums) {
     if (selectedFnfnums.length === 0) return [];
 
-    // Start with chemicals of the first selected plant
     let sharedSet = fnfChemicals[selectedFnfnums[0]];
     if (!sharedSet) return [];
 
-    // For each subsequent plant, intersect the sets
     for (let i = 1; i < selectedFnfnums.length; i++) {
       const chemicals = fnfChemicals[selectedFnfnums[i]];
       if (!chemicals) return [];
@@ -435,12 +374,9 @@
       if (sharedSet.size === 0) return [];
     }
 
-    // Return sorted array of shared chemicals
     return Array.from(sharedSet).sort();
   }
 
-  // When the user clicks the "Find Common Chemicals" button,
-  // calculate and display the shared chemicals among the selected plants.
   document.getElementById("find-common").addEventListener("click", () => {
     const commonChemicals = findSharedChemicals(selectedPlants);
 
@@ -454,7 +390,6 @@
     }
   });
 
-  // Initialize by loading plant data
   loadPlantData();
 
 </script>
