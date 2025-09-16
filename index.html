@@ -543,7 +543,7 @@ function sortChemicals(list) {
     } else {
       // Render as text-based table with 4 columns: Chemical Name | % of Seleted Plants | % of All Plants | Score
       let table = `<h3>Common Chemicals (Majority):</h3>
-<table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; text-align: left;">
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; max-width: 900px; margin: 0 auto; text-align: left;">
   <thead>
     <tr>
       <th>Chemical Name</th>
@@ -626,22 +626,19 @@ document.getElementById("sort-toggle").addEventListener("click", () => {
 <div id="about-box" style="margin-top: 30px; padding: 20px; background: #eef5ee; border-radius: 10px; border: 1px solid #a7c4a0; font-size: 0.95rem; line-height: 1.5;">
   <h3 style="color:#1b4332; margin-top:0;">About PhytoFinder</h3>
   <p>
-    PhytoFinder was created as a personal project to explore the fascinating world of plants 
-    and the phytochemicals they contain. The idea came from wanting a simple, interactive way 
-    to connect traditional herbal knowledge with modern data sources, making it easier to 
-    identify patterns and discover potential remedies.
+    PhytoFinder was created as a personal project inspired by <strong>Claire Kooy</strong>, a student at the University of South Florida studying Chemistry and Biology. 
+    She expressed frustration when trying to find the active chemicals in groups of plants that had similar medical effects. This led her to ask me to create a website 
+    that provides a simple and interactive way to compare the phytochemicals in plants making it easier to identify patterns and discover potential remedies.
   </p>
   <p>
-    The website was designed and built by <strong>[Your Name Here]</strong> using modern web 
-    technologies (HTML, CSS, JavaScript) and is powered by the publicly available USDA 
-    phytochemical database. It started as an experiment to learn about coding, data handling, 
-    and plant science — and grew into a tool that others can use for research, curiosity, or 
-    inspiration.
+    The website was designed and built by <strong>Aidan Wriggelsworth</strong> using GitHub, and VS Code. This program is written in HTML, CSS, and JavaScript, and is 
+    powered by the publicly available USDA phytochemical database created by Dr. Duke and his team. It started as an experiment to learn about coding, data handling, 
+    and plant science — and grew into a tool that others can use for researching common plant chemicals, or inspiration on their next research project.
   </p>
   <p>
-    The goal of PhytoFinder is not to provide medical advice, but to help highlight which 
-    chemicals appear in plants associated with certain uses. It’s meant as an educational 
-    and exploratory resource.
+    The goal of PhytoFinder is not to provide medical advice. PhytoFinder is not intended to diagnose, treat, or cure any disease, but to help highlight which 
+    chemicals appear in plants associated with certain uses. It’s meant as an educational and exploratory resource and it aims to help researchers narrow their focus 
+    when investigating the active medicinal properties of plants. Always consult a healthcare professional before using plants or phytochemicals for medicinal purposes.
   </p>
 </div>
 
