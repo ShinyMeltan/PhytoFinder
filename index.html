@@ -543,13 +543,13 @@ function sortChemicals(list) {
     if (relevantChemicals.length === 0) {// When the user clicks the "Find Common Chemicals" button,
       resultsDiv.textContent = "No common chemicals found among the selected plants.";
     } else {
-      // Render as text-based table with 4 columns: Chemical Name | % of Plants | % of All Plants | Score
+      // Render as text-based table with 4 columns: Chemical Name | % of Seleted Plants | % of All Plants | Score
       let table = `<h3>Common Chemicals (Majority):</h3>
 <table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; text-align: left;">
   <thead>
     <tr>
       <th>Chemical Name</th>
-      <th>% of Plants</th>
+      <th>% of Selected Plants</th>
       <th>% of All Plants</th>
       <th>Score</th>
     </tr>
