@@ -579,6 +579,18 @@ document.getElementById("clear-chemicals").addEventListener("click", () => {
 
 </script>
 
+<div class="results" id="results"></div>
+
+<script>
+  // All your current JS: data loading, search, selected plants rendering,
+  // findRelevantChemicals function, sorting, event listeners, etc.
+</script>
+
+<div id="info-box"> ... </div>
+<div id="credits-box"> ... </div>
+<div id="about-box"> ... </div>
+</body>
+
 <div id="info-box" style="margin-top: 50px; padding: 20px; background: #eef5ee; border-radius: 10px; border: 1px solid #a7c4a0; font-size: 0.95rem; line-height: 1.5;">
   <h3 style="color:#1b4332; margin-top:0;">How to Use PhytoFinder</h3>
   <p>
@@ -635,6 +647,14 @@ document.getElementById("clear-chemicals").addEventListener("click", () => {
     when investigating the active medicinal properties of plants. Always consult a healthcare professional before using plants or phytochemicals for medicinal purposes.
   </p>
 </div>
+
+// Existing button listeners
+document.getElementById("find-common").addEventListener(...);
+document.getElementById("sort-toggle").addEventListener(...);
+document.getElementById("clear-chemicals").addEventListener(...);
+
+// <<< Paste new functionality here >>>
+document.getElementById("download-excel").addEventListener(...);
 
 </body>
 </html>
