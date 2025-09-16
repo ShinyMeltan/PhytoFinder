@@ -587,16 +587,35 @@ document.getElementById("download-excel").addEventListener("click", () => {
 
   // Build CSV content
   const headers = ["Chemical Name", "% of Selected Plants", "% of All Plants", "Score"];
+  document.getElementById("download-excel").addEventListener("click", () => {
+  const relevantChemicals = findRelevantChemicals(selectedPlants);
+  if (!relevantChemicals || relevantChemicals.length === 0) {
+    alert("No chemicals to download. Please select plants first.");
+    return;
+  }
+
+  // Build CSV content
+  const headers = ["Chemical Name", "% of Selected Plants", "% of All Plants", "Score"];
   const rows = relevantChemicals.map(c => [
-    `"${c.name}"`, // Wrap in quotes to handle commas
+    `"${c.name.replace(/"/g, '""')}"`,
     c.percentSelected,
     c.percentAll,
     Math.round(c.score)
   ].join(","));
-  const csvContent = [headers.join(","), ...rows].join("\n");
+  
+  const csvContent = [headers.join(","), ...rows].join("\n"); // <-- fixed
 
   // Create a blob and trigger download
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "phytofinder_chemicals.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
