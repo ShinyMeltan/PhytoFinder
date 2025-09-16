@@ -478,7 +478,8 @@
     const res = [];
     for (const chem in chemCount) {
       const percentSelected = Math.ceil((chemCount[chem] / totalSelected) * 100);
-      if (percentSelected > 50) {
+      // Only include if present in >1% of selected plants - prevents showing chemicals not present in selected set
+      if (percentSelected > 1) {
         const countAll = chemCountAll[chem] || 0;
         const percentAll = totalAll === 0 ? 0 : Math.ceil((countAll / totalAll) * 100);
         // Score: percentSelected / percentAll (floating point, rounded to 2 decimals)
@@ -500,13 +501,46 @@
     );
     return res;
   }
+  // Sorting modes and current sort index
+let sortModes = ["score", "alpha", "selected", "all"];
+let currentSortIndex = 0;
 
+function sortChemicals(list) {
+  const mode = sortModes[currentSortIndex];
+  switch (mode) {
+    case "score":
+      list.sort((a, b) =>
+        b.score - a.score ||
+        b.percentSelected - a.percentSelected ||
+        a.name.localeCompare(b.name)
+      );
+      break;
+    case "alpha":
+      list.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case "selected":
+      list.sort((a, b) =>
+        b.percentSelected - a.percentSelected ||
+        a.name.localeCompare(b.name)
+      );
+      break;
+    case "all":
+      list.sort((a, b) =>
+        b.percentAll - a.percentAll ||
+        a.name.localeCompare(b.name)
+      );
+      break;
+  }
+}
+//event listener
   // When the user clicks the "Find Common Chemicals" button,
   // calculate and display chemicals present in a majority of selected plants.
   document.getElementById("find-common").addEventListener("click", () => {
     const resultsDiv = document.getElementById("results");
     const relevantChemicals = findRelevantChemicals(selectedPlants);
-    if (relevantChemicals.length === 0) {
+    //sort chemicals based on current sort mode
+    sortChemicals(relevantChemicals);
+    if (relevantChemicals.length === 0) {// When the user clicks the "Find Common Chemicals" button,
       resultsDiv.textContent = "No common chemicals found among the selected plants.";
     } else {
       // Render as text-based table with 4 columns: Chemical Name | % of Plants | % of All Plants | Score
@@ -534,7 +568,20 @@
 resultsDiv.innerHTML = table;
     }
   });
-
+document.getElementById("sort-toggle").addEventListener("click", () => {
+  currentSortIndex = (currentSortIndex + 1) % sortModes.length;
+  const mode = sortModes[currentSortIndex];
+  const button = document.getElementById("sort-toggle");
+  let label = "";
+  if (mode === "score") label = "Sort: Score";
+  if (mode === "alpha") label = "Sort: Alphabetical";
+  if (mode === "selected") label = "Sort: % Selected";
+  if (mode === "all") label = "Sort: % All";
+  button.textContent = label;
+  
+  // Re-run analysis if results already displayed
+  document.getElementById("find-common").click();
+});
   // Initialize by loading plant data
   loadPlantData();
 
