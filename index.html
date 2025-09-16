@@ -210,7 +210,6 @@
   let fnfData = {}; // fnfnum -> { scientific: string, taxon: string, commons: [] }
   let nameToFnf = new Map(); // name (common, scientific, or taxon) lowercased -> fnfnum
   let searchableNames = []; // array of { name, fnfnum }
-  let plants = []; // will be replaced by searchableNames.map(n => n.name)
 
   // New mapping for fnfnum to Set of chemicals
   let fnfChemicals = {}; // fnfnum -> Set of chemical names
@@ -329,15 +328,12 @@
         nameToFnf.set(entry.taxon.toLowerCase(), fnfnum);
       }
       // Removed adding scientific names to searchableNames and nameToFnf
-      // searchableNames.push({ name: entry.scientific, fnfnum });
-      // nameToFnf.set(entry.scientific.toLowerCase(), fnfnum);
     }
 
     // Sort searchableNames alphabetically by name for better UX
     searchableNames.sort((a,b) => a.name.localeCompare(b.name));
 
     // Replace plants array with all names
-    plants = searchableNames.map(n => n.name);
   }
 
   // Helper to get display name for a fnfnum: prefer taxon, else first common, else scientific
