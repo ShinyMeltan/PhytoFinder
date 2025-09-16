@@ -541,9 +541,18 @@ function sortChemicals(list) {
 resultsDiv.innerHTML = table;
     }
   });
-document.getElementById("sort-toggle").addEventListener("click", () => {
-  currentSortIndex = (currentSortIndex + 1) % sortModes.length;
-  const mode = sortModes[currentSortIndex];
+  // Add event listener for sort toggle button
+  document.getElementById("sort-toggle").addEventListener("click", () => {
+    currentSortIndex = (currentSortIndex + 1) % sortModes.length;
+    const mode = sortModes[currentSortIndex];
+    const button = document.getElementById("sort-toggle");
+  });
+  // Add event listener for "Clear All Chemicals" button
+  document.getElementById("clear-chemicals").addEventListener("click", () => {
+    // Clear all selected chemicals and reset the UI
+    selectedPlants = [];
+    document.getElementById("results").innerHTML = "";
+  });
   const button = document.getElementById("sort-toggle");
   let label = "";
   if (mode === "score") label = "Sort: Score";
