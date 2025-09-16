@@ -585,5 +585,25 @@ document.getElementById("sort-toggle").addEventListener("click", () => {
 
 </script>
 
+<div id="info-box" style="margin-top: 50px; padding: 20px; background: #eef5ee; border-radius: 10px; border: 1px solid #a7c4a0; font-size: 0.95rem; line-height: 1.5;">
+  <h3 style="color:#1b4332; margin-top:0;">How to Use PhytoFinder</h3>
+  <p>
+    Select plants using the search bar above. When you click <strong>Find Common Chemicals</strong>, 
+    the system analyzes all selected plants and lists the chemicals they contain.
+  </p>
+  <ul>
+    <li><strong>Chemical Name</strong> – The phytochemical found in one or more of your selected plants.</li>
+    <li><strong>% of Selected Plants</strong> – How many of the plants you chose contain this chemical.</li>
+    <li><strong>% of All Plants</strong> – How common this chemical is across the entire database of plants.</li>
+    <li><strong>Score</strong> – A relative measure of how much more strongly this chemical appears in your selection compared to its overall prevalence. 
+      It is calculated as:
+      <code>(% in Selected Plants ÷ % in All Plants)</code>, rounded to the nearest whole number.</li>
+  </ul>
+  <p>
+    Use the <strong>Sort</strong> button in the top-right corner to change how results are ordered: 
+    by Score, Alphabetical order, % in Selected Plants, or % in All Plants.
+  </p>
+</div>
+
 </body>
 </html>
