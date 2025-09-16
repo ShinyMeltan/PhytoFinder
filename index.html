@@ -184,27 +184,6 @@
 <div class="results" id="results"></div>
 
 <script>
-  // chemicalList defines the master list of chemicals, in a specific order.
-  // Each index in this array corresponds to a column in the plantMatrix.
-  const chemicalList = [
-    "Linalool", "Eugenol", "Camphor", "Thymol",
-    "Menthol", "Citral", "Myrcene", "Geraniol",
-    "Pinene", "Carvacrol"
-  ];
-
-  // plantMatrix maps each plant to an array of 0s and 1s, where each position
-  // corresponds to the presence (1) or absence (0) of the chemical at that index
-  // in chemicalList. This acts as a binary "fingerprint" for each plant.
-  // This original matrix uses scientific names as keys.
-  const plantMatrix = {
-    Basil:    [1,1,0,0,0,0,0,0,0,0],
-    Lavender: [1,0,1,0,0,0,0,0,0,0],
-    Thyme:    [0,0,0,1,0,0,0,0,0,0],
-    Mint:     [1,0,0,0,1,0,0,0,0,0],
-    Oregano:  [1,0,0,0,0,0,0,0,0,1],
-    Rosemary: [0,1,0,0,0,0,0,0,1,0],
-    Sage:     [1,0,0,0,0,0,1,0,0,0]
-  };
 
   // Variables for loaded data and mappings
   let fnfData = {}; // fnfnum -> { scientific: string, taxon: string, commons: [] }
