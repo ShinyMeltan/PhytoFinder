@@ -441,44 +441,54 @@
   });
 
   /**
-   * Finds chemicals shared by all selected plants.
-   * Uses the fnfChemicals mapping of fnfnum to Set of chemicals.
-   * Returns the intersection of chemical sets for all selected plants.
-   *
+   * Finds chemicals present in a majority (>50%) of selected plants.
+   * Returns array of objects: { name, percent }
    * @param {string[]} selectedFnfnums - Array of selected plant fnfnum keys.
-   * @returns {string[]} Array of chemical names present in all selected plants.
+   * @returns {{ name: string, percent: number }[]} Array of chemical objects.
    */
-  function findSharedChemicals(selectedFnfnums) {
-    if (selectedFnfnums.length === 0) return [];
-
-    // Start with chemicals of the first selected plant
-    let sharedSet = fnfChemicals[selectedFnfnums[0]];
-    if (!sharedSet) return [];
-
-    // For each subsequent plant, intersect the sets
-    for (let i = 1; i < selectedFnfnums.length; i++) {
-      const chemicals = fnfChemicals[selectedFnfnums[i]];
-      if (!chemicals) return [];
-      sharedSet = new Set([...sharedSet].filter(c => chemicals.has(c)));
-      if (sharedSet.size === 0) return [];
+  function findMajorityChemicals(selectedFnfnums) {
+    if (!selectedFnfnums || selectedFnfnums.length === 0) return [];
+    const chemCount = {};
+    selectedFnfnums.forEach(fnfnum => {
+      const chems = fnfChemicals[fnfnum];
+      if (chems) {
+        chems.forEach(chem => {
+          chemCount[chem] = (chemCount[chem] || 0) + 1;
+        });
+      }
+    });
+    const res = [];
+    const total = selectedFnfnums.length;
+    for (const chem in chemCount) {
+      const percent = Math.ceil((chemCount[chem] / total) * 100);
+      if (percent > 50) {
+        res.push({ name: chem, percent });
+      }
     }
-
-    // Return sorted array of shared chemicals
-    return Array.from(sharedSet).sort();
+    // Sort by percent descending, then by name
+    res.sort((a, b) => b.percent - a.percent || a.name.localeCompare(b.name));
+    return res;
   }
 
   // When the user clicks the "Find Common Chemicals" button,
-  // calculate and display the shared chemicals among the selected plants.
+  // calculate and display chemicals present in a majority of selected plants.
   document.getElementById("find-common").addEventListener("click", () => {
-    const commonChemicals = findSharedChemicals(selectedPlants);
-
     const resultsDiv = document.getElementById("results");
-    if (commonChemicals.length === 0) {
+    const majorityChemicals = findMajorityChemicals(selectedPlants);
+    if (majorityChemicals.length === 0) {
       resultsDiv.textContent = "No common chemicals found among the selected plants.";
     } else {
-      resultsDiv.innerHTML = "<h3>Common Chemicals:</h3><ul>" +
-        commonChemicals.map(c => `<li>${c}</li>`).join("") +
-        "</ul>";
+      // Render as text-based table
+      let table = `<h3>Common Chemicals (Majority):</h3>\n<pre>\n`;
+      table += `Chemical Name     | % of Plants\n`;
+      table += `----------------- | ------------\n`;
+      majorityChemicals.forEach(({ name, percent }) => {
+        // Pad name to 17 chars for alignment
+        const padded = name.padEnd(17, " ");
+        table += `${padded}| ${percent}%\n`;
+      });
+      table += `</pre>`;
+      resultsDiv.innerHTML = table;
     }
   });
 
