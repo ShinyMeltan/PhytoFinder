@@ -506,20 +506,28 @@
       resultsDiv.textContent = "No common chemicals found among the selected plants.";
     } else {
       // Render as text-based table with 4 columns: Chemical Name | % of Plants | % of All Plants | Score
-      let table = `<h3>Common Chemicals (Majority):</h3>\n<pre>\n`;
-      // Column widths: name (17), % of Plants (13), % of All Plants (16), Score (7)
-      table += `Chemical Name     | % of Plants | % of All Plants | Score \n`;
-      table += `----------------- | ------------| ----------------| ------\n`;
-      relevantChemicals.forEach(({ name, percentSelected, percentAll, score }) => {
-        // Pad columns for alignment
-        const namePadded = name.padEnd(17, " ");
-        const percentSelPadded = (percentSelected + "%").padEnd(12, " ");
-        const percentAllPadded = (percentAll + "%").padEnd(16, " ");
-        const scorePadded = score.toFixed(2).padEnd(6, " ");
-        table += `${namePadded}| ${percentSelPadded}| ${percentAllPadded}| ${scorePadded}\n`;
-      });
-      table += `</pre>`;
-      resultsDiv.innerHTML = table;
+      let table = `<h3>Common Chemicals (Majority):</h3>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; text-align: left;">
+  <thead>
+    <tr>
+      <th>Chemical Name</th>
+      <th>% of Plants</th>
+      <th>% of All Plants</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${relevantChemicals.map(({ name, percentSelected, percentAll, score }) => `
+      <tr>
+        <td>${name}</td>
+        <td>${percentSelected}%</td>
+        <td>${percentAll}%</td>
+        <td>${Math.round(score)}</td>
+      </tr>
+    `).join("")}
+  </tbody>
+</table>`;
+resultsDiv.innerHTML = table;
     }
   });
 
