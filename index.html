@@ -441,19 +441,15 @@
   });
 
   /**
-   * Finds chemicals relevant to selected plants.
-   * For each chemical, computes:
-   *   - percentSelected: ceil((count in selected) / selectedFnfnums.length * 100)
-   *   - percentAll: ceil((number of plants in fnfChemicals with this chemical) / total plants in fnfChemicals * 100)
-   * Only includes chemicals where percentSelected >= 1.
-   * Returns array of objects: { name, percentSelected, percentAll }
-   * @param {string[]} selectedFnfnums
-   * @returns {{ name: string, percentSelected: number, percentAll: number }[]}
+   * Finds chemicals present in a majority (>50%) of selected plants.
+   * Returns array of objects: { name, percentSelected, percentAll, score }
+   * @param {string[]} selectedFnfnums - Array of selected plant fnfnum keys.
+   * @returns {{ name: string, percentSelected: number, percentAll: number, score: number }[]} Array of chemical objects.
    */
   function findRelevantChemicals(selectedFnfnums) {
     if (!selectedFnfnums || selectedFnfnums.length === 0) return [];
     const chemCount = {};
-    // Count chemical occurrences in selected plants
+    // Count occurrences in selected plants
     selectedFnfnums.forEach(fnfnum => {
       const chems = fnfChemicals[fnfnum];
       if (chems) {
@@ -462,57 +458,65 @@
         });
       }
     });
+    // Count occurrences in all plants
+    const allFnfnums = Object.keys(fnfChemicals);
+    const chemCountAll = {};
+    allFnfnums.forEach(fnfnum => {
+      const chems = fnfChemicals[fnfnum];
+      if (chems) {
+        chems.forEach(chem => {
+          chemCountAll[chem] = (chemCountAll[chem] || 0) + 1;
+        });
+      }
+    });
     const totalSelected = selectedFnfnums.length;
-    const totalPlants = Object.keys(fnfChemicals).length;
-    // For each chemical, calculate percentSelected and percentAll
+    const totalAll = allFnfnums.length;
     const res = [];
     for (const chem in chemCount) {
-      const countSelected = chemCount[chem];
-      const percentSelected = Math.ceil((countSelected / totalSelected) * 100);
-      // Count how many plants in fnfChemicals have this chemical
-      let countAll = 0;
-      for (const fnfnum in fnfChemicals) {
-        if (fnfChemicals[fnfnum].has(chem)) countAll++;
-      }
-      const percentAll = Math.ceil((countAll / totalPlants) * 100);
-      if (percentSelected >= 1) {
-        res.push({ name: chem, percentSelected, percentAll });
+      const percentSelected = Math.ceil((chemCount[chem] / totalSelected) * 100);
+      if (percentSelected > 50) {
+        const countAll = chemCountAll[chem] || 0;
+        const percentAll = totalAll === 0 ? 0 : Math.ceil((countAll / totalAll) * 100);
+        // Score: percentSelected / percentAll (floating point, rounded to 2 decimals)
+        let score = percentAll === 0 ? 0 : (chemCount[chem] / totalSelected) / (countAll / totalAll);
+        score = Math.round(score * 100) / 100;
+        res.push({
+          name: chem,
+          percentSelected,
+          percentAll,
+          score
+        });
       }
     }
-    // Sort by percentSelected descending, then percentAll descending, then name
+    // Sort by score descending, then by percentSelected descending, then by name
     res.sort((a, b) =>
+      b.score - a.score ||
       b.percentSelected - a.percentSelected ||
-      b.percentAll - a.percentAll ||
       a.name.localeCompare(b.name)
     );
     return res;
   }
 
   // When the user clicks the "Find Common Chemicals" button,
-  // calculate and display relevant chemicals for selected plants.
+  // calculate and display chemicals present in a majority of selected plants.
   document.getElementById("find-common").addEventListener("click", () => {
     const resultsDiv = document.getElementById("results");
     const relevantChemicals = findRelevantChemicals(selectedPlants);
     if (relevantChemicals.length === 0) {
-      resultsDiv.textContent = "No relevant chemicals found among the selected plants.";
+      resultsDiv.textContent = "No common chemicals found among the selected plants.";
     } else {
-      // Render as text-based table with three columns
-      let table = `<h3>Relevant Chemicals:</h3>\n<pre>\n`;
-      // Column widths
-      const col1 = 20, col2 = 20, col3 = 16;
-      table +=
-        "Chemical Name".padEnd(col1, " ") + "| " +
-        "% of Selected Plants".padEnd(col2, " ") + "| " +
-        "% of All Plants".padEnd(col3, " ") + "\n";
-      table +=
-        "-".repeat(col1) + " | " +
-        "-".repeat(col2) + " | " +
-        "-".repeat(col3) + "\n";
-      relevantChemicals.forEach(({ name, percentSelected, percentAll }) => {
-        const paddedName = name.padEnd(col1, " ");
-        const paddedSelected = (`${percentSelected}%`).padEnd(col2, " ");
-        const paddedAll = (`${percentAll}%`).padEnd(col3, " ");
-        table += `${paddedName}| ${paddedSelected}| ${paddedAll}\n`;
+      // Render as text-based table with 4 columns: Chemical Name | % of Plants | % of All Plants | Score
+      let table = `<h3>Common Chemicals (Majority):</h3>\n<pre>\n`;
+      // Column widths: name (17), % of Plants (13), % of All Plants (16), Score (7)
+      table += `Chemical Name     | % of Plants | % of All Plants | Score \n`;
+      table += `----------------- | ------------| ----------------| ------\n`;
+      relevantChemicals.forEach(({ name, percentSelected, percentAll, score }) => {
+        // Pad columns for alignment
+        const namePadded = name.padEnd(17, " ");
+        const percentSelPadded = (percentSelected + "%").padEnd(12, " ");
+        const percentAllPadded = (percentAll + "%").padEnd(16, " ");
+        const scorePadded = score.toFixed(2).padEnd(6, " ");
+        table += `${namePadded}| ${percentSelPadded}| ${percentAllPadded}| ${scorePadded}\n`;
       });
       table += `</pre>`;
       resultsDiv.innerHTML = table;
