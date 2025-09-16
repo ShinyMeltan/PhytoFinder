@@ -179,6 +179,7 @@
   </div>
   <div id="selected-plants"></div>
   <button id="find-common">Find Common Chemicals</button>
+  <button id="clear-chemicals" style="background-color: #a83232; margin-left: 10px;">Clear All Chemicals</button>
 </div>
 
 <div class="results" id="results"></div>
@@ -554,6 +555,23 @@ document.getElementById("sort-toggle").addEventListener("click", () => {
   
   // Re-run analysis if results already displayed
   document.getElementById("find-common").click();
+});
+// Clear all selected plants and results
+document.getElementById("clear-chemicals").addEventListener("click", () => {
+  // Clear selected plants array
+  selectedPlants.length = 0;
+  // Clear displayed selected plants
+  renderSelectedPlants();
+  // Clear results table
+  document.getElementById("results").innerHTML = "";
+  // Clear search input
+  plantSearchInput.value = "";
+  // Hide suggestions
+  suggestionsDiv.style.display = "none";
+  suggestionsDiv.innerHTML = "";
+  // Reset sort button to Score
+  currentSortIndex = 0;
+  document.getElementById("sort-toggle").textContent = "Sort: Score";
 });
   // Initialize by loading plant data
   loadPlantData();
