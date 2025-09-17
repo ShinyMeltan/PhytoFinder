@@ -574,10 +574,7 @@ document.getElementById("clear-chemicals").addEventListener("click", () => {
   currentSortIndex = 0;
   document.getElementById("sort-toggle").textContent = "Sort: Score";
 });
-  // Initialize by loading plant data
-  loadPlantData();
 
-// Download current results as CSV for Excel
 document.getElementById("download-excel").addEventListener("click", () => {
   const relevantChemicals = findRelevantChemicals(selectedPlants);
   if (!relevantChemicals || relevantChemicals.length === 0) {
@@ -585,68 +582,36 @@ document.getElementById("download-excel").addEventListener("click", () => {
     return;
   }
 
+  // Apply current sorting
+  sortChemicals(relevantChemicals);
+
   // Build CSV content
   const headers = ["Chemical Name", "% of Selected Plants", "% of All Plants", "Score"];
   const rows = relevantChemicals.map(c => [
-    `"${c.name.replace(/"/g, '""')}"`, // Escape quotes
-    c.percentSelected,
-    c.percentAll,
+    `"${c.name}"`,             // Quote names to avoid CSV breaks
+    `${c.percentSelected}%`,   // Add % for readability
+    `${c.percentAll}%`,
     Math.round(c.score)
   ].join(","));
   const csvContent = [headers.join(","), ...rows].join("\n");
 
-  // Create a blob and trigger download
+  // Create Blob and download
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
+  a.style.display = "none";    // Keep anchor hidden
   a.href = url;
   a.download = "phytofinder_chemicals.csv";
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => {           // Delay removal so browsers register the click
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 });
 
-  // Build CSV content
-  const headers = ["Chemical Name", "% of Selected Plants", "% of All Plants", "Score"];
-  document.getElementById("download-excel").addEventListener("click", () => {
-  const relevantChemicals = findRelevantChemicals(selectedPlants);
-  if (!relevantChemicals || relevantChemicals.length === 0) {
-    alert("No chemicals to download. Please select plants first.");
-    return;
-  }
-
-  // Build CSV content
-  const headers = ["Chemical Name", "% of Selected Plants", "% of All Plants", "Score"];
-  const rows = relevantChemicals.map(c => [
-    `"${c.name.replace(/"/g, '""')}"`,
-    c.percentSelected,
-    c.percentAll,
-    Math.round(c.score)
-  ].join(","));
-  
-  const csvContent = [headers.join(","), ...rows].join("\n"); // <-- fixed
-
-  // Create a blob and trigger download
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "phytofinder_chemicals.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "phytofinder_chemicals.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
+  // Initialize by loading plant data
+  loadPlantData();
 
 </script>
 
