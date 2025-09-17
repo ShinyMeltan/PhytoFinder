@@ -173,13 +173,14 @@
 
 /* Left side (search + buttons) */
 #left-panel {
-  flex: 1;
+  flex: 0 0 55%; /* lock width to ~55% of screen */
+  max-width: 55%;
 }
 
 /* Right side (results) */
 #right-panel {
   flex: 1;
-  max-width: 900px;
+  margin-left: 40px; /* buffer space between columns */
 }
 
 /* Buttons in a row */
