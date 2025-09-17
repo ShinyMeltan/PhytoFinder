@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PhytoFinder</title>
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
 /* Info sections aligned horizontally */
 .info-sections {
   display: flex;
@@ -40,13 +43,12 @@
   .info-box {
     width: 100%;
     max-width: 350px;
+    aspect-ratio: auto; /* optional to avoid tall boxes */
   }
 }
 
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-
-  body {
+/* Rest of your existing CSS */
+body {
   font-family: 'Inter', Arial, sans-serif;
   margin: 50px;
   background-color: #f9faf9;
@@ -749,7 +751,6 @@ document.getElementById("download-excel").addEventListener("click", () => {
 </script>
 
 <div class="info-sections">
-  <div class="info-box">
     <h3>How to Use PhytoFinder</h3>
     <p>
       Select plants using the search bar above. When you click <strong>Find Common Chemicals</strong>, 
@@ -777,8 +778,10 @@ document.getElementById("download-excel").addEventListener("click", () => {
     <!-- Copy all of your current #about-box content here -->
   </div>
 </div>
-<div id="info-box" style="margin-top: 50px; padding: 20px; background: #eef5ee; border-radius: 10px; border: 1px solid #a7c4a0; font-size: 0.95rem; line-height: 1.5;">
-  <h3 style="color:#1b4332; margin-top:0;">How to Use PhytoFinder</h3>
+<div class="info-box">
+  <h3>Credits & Attributions</h3>
+  ...
+</div>
   <p>
     Select plants using the search bar above. When you click <strong>Find Common Chemicals</strong>, 
     the system analyzes all selected plants and lists the chemicals they contain.
@@ -797,8 +800,8 @@ document.getElementById("download-excel").addEventListener("click", () => {
   </p>
 </div>
 
-<div id="credits-box" style="margin-top: 30px; padding: 20px; background: #eef5ee; border-radius: 10px; border: 1px solid #a7c4a0; font-size: 0.95rem; line-height: 1.5;">
-  <h3 style="color:#1b4332; margin-top:0;">Credits & Attributions</h3>
+<div class="info-box" id="credits-box">
+    <h3 style="color:#1b4332; margin-top:0;">Credits & Attributions</h3>
   <p>
     Contents of this database are made available under a 
     <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" style="color:#1b4332; text-decoration:underline;">
@@ -815,8 +818,8 @@ document.getElementById("download-excel").addEventListener("click", () => {
   </p>
 </div>
 
-<div id="about-box" style="margin-top: 30px; padding: 20px; background: #eef5ee; border-radius: 10px; border: 1px solid #a7c4a0; font-size: 0.95rem; line-height: 1.5;">
-  <h3 style="color:#1b4332; margin-top:0;">About PhytoFinder</h3>
+<div class="info-box" id="credits-box">
+    <h3 style="color:#1b4332; margin-top:0;">About PhytoFinder</h3>
   <p>
     PhytoFinder was created as a personal project inspired by <strong>Claire Kooy</strong>, a student at the University of South Florida studying Chemistry and Biology. 
     She expressed frustration when trying to find the active chemicals in groups of plants that had similar medical effects. This led her to ask me to create a website 
