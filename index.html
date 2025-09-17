@@ -187,6 +187,28 @@
 
 <script>
 
+  // Helper to parse CSV lines safely (handles commas inside quotes)
+function parseCSVLine(line) {
+  const values = [];
+  let current = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      insideQuotes = !insideQuotes; // toggle when seeing quotes
+    } else if (char === ',' && !insideQuotes) {
+      values.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  values.push(current.trim()); // last field
+  return values;
+}
+
   // Variables for loaded data and mappings
   let fnfData = {}; // fnfnum -> { scientific: string, taxon: string, commons: [] }
   let nameToFnf = new Map(); // name (common, scientific, or taxon) lowercased -> fnfnum
