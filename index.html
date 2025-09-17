@@ -34,19 +34,6 @@
   text-align: left;
 }
 
-/* Make them stack vertically on mobile */
-@media (max-width: 768px) {
-  .info-sections {
-    flex-direction: column;
-    align-items: center;
-  }
-  .info-box {
-    width: 100%;
-    max-width: 350px;
-    aspect-ratio: auto; /* optional to avoid tall boxes */
-  }
-}
-
 /* Rest of your existing CSS */
 body {
   font-family: 'Inter', Arial, sans-serif;
@@ -678,6 +665,7 @@ function sortChemicals(list) {
 resultsDiv.innerHTML = table;
     }
   });
+// Handle sort button click to cycle through modes
 document.getElementById("sort-toggle").addEventListener("click", () => {
   currentSortIndex = (currentSortIndex + 1) % sortModes.length;
   const mode = sortModes[currentSortIndex];
