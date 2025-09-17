@@ -228,26 +228,28 @@
     console.log("searchableNames:", searchableNames.map(n => n.name));
     // Parse scientific_names.csv
     // Expected format: fnfnum,scientific_name,...,TAXON (4th column)
-    sciText.trim().split('\n').forEach(line => {
-      const cols = line.split(',').map(s => s.trim());
-      const fnfnum = cols[0];
-      const scientific = cols[1];
-      const taxon = cols[3] || ""; // 4th column is TAXON
-      if (fnfnum && scientific) {
-        fnfData[fnfnum] = { scientific: scientific, taxon: taxon, commons: [] };
-      }
-    });
+  sciText.trim().split('\n').forEach(line => {
+  const cols = parseCSVLine(line);
+  const fnfnum = cols[0];
+  const scientific = cols[1];
+  const taxon = cols[3] || ""; // 4th column is TAXON
+  if (fnfnum && scientific) {
+    fnfData[fnfnum] = { scientific: scientific, taxon: taxon, commons: [] };
+  }
+});
 
     // Parse common_names.csv
     // Expected format: fnfnum,common_name
     comText.trim().split('\n').forEach(line => {
-      const [fnfnum, common] = line.split(',').map(s => s.trim());
-      if (fnfnum && common && fnfData[fnfnum]) {
-        fnfData[fnfnum].commons.push(common);
-        searchableNames.push({ name: common, fnfnum });
-        nameToFnf.set(common.toLowerCase(), fnfnum);
-      }
-    });
+  const cols = parseCSVLine(line);
+  const fnfnum = cols[0];
+  const common = cols[1];
+  if (fnfnum && common && fnfData[fnfnum]) {
+    fnfData[fnfnum].commons.push(common);
+    searchableNames.push({ name: common, fnfnum });
+    nameToFnf.set(common.toLowerCase(), fnfnum);
+  }
+});
 
     // Load and parse phytochemicals1.csv
     let phyto1Text = "";
@@ -259,17 +261,16 @@
       console.error("Failed to fetch phytochemicals1.csv:", err);
     }
     phyto1Text.trim().split('\n').forEach(line => {
-      const cols = line.split(',').map(s => s.trim());
-      const fnfnum = cols[0];
-      const chemical = cols.length > 2 ? cols.slice(1, cols.length - 1).join(',').trim() : cols[1];
-      // Skip PPCO for now (last column)
-      if (fnfnum && chemical) {
-        if (!fnfChemicals[fnfnum]) {
-          fnfChemicals[fnfnum] = new Set();
-        }
-        fnfChemicals[fnfnum].add(chemical);
-      }
-    });
+  const cols = parseCSVLine(line);
+  const fnfnum = cols[0];
+  const chemical = cols[1]; // chemical stays intact
+  if (fnfnum && chemical) {
+    if (!fnfChemicals[fnfnum]) {
+      fnfChemicals[fnfnum] = new Set();
+    }
+    fnfChemicals[fnfnum].add(chemical);
+  }
+});
 
     // Load and parse phytochemicals2.csv
     let phyto2Text = "";
@@ -281,17 +282,16 @@
       console.error("Failed to fetch phytochemicals2.csv:", err);
     }
     phyto2Text.trim().split('\n').forEach(line => {
-      const cols = line.split(',').map(s => s.trim());
-      const fnfnum = cols[0];
-      const chemical = cols.length > 2 ? cols.slice(1, cols.length - 1).join(',').trim() : cols[1];
-      // Skip PPCO for now (last column)
-      if (fnfnum && chemical) {
-        if (!fnfChemicals[fnfnum]) {
-          fnfChemicals[fnfnum] = new Set();
-        }
-        fnfChemicals[fnfnum].add(chemical);
-      }
-    });
+  const cols = parseCSVLine(line);
+  const fnfnum = cols[0];
+  const chemical = cols[1];
+  if (fnfnum && chemical) {
+    if (!fnfChemicals[fnfnum]) {
+      fnfChemicals[fnfnum] = new Set();
+    }
+    fnfChemicals[fnfnum].add(chemical);
+  }
+});
 
     // Build searchableNames array and nameToFnf map
     searchableNames = [];
