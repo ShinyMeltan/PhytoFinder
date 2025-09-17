@@ -163,6 +163,69 @@
   .results li {
     margin-bottom: 6px;
   }
+  /* Two-column layout */
+#main-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+/* Left side (search + buttons) */
+#left-panel {
+  flex: 1;
+}
+
+/* Right side (results) */
+#right-panel {
+  flex: 1;
+  max-width: 600px;
+}
+
+/* Buttons in a row */
+#button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#button-row button {
+  flex: 1; /* makes them equal width */
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Keep your custom colors */
+#find-common {
+  background-color: #52734d;
+  color: #f0f5f1;
+}
+#find-common:hover {
+  background-color: #3e5c34;
+}
+
+#clear-chemicals {
+  background-color: #a83232;
+  color: #f0f5f1;
+}
+#clear-chemicals:hover {
+  background-color: #7f1d1d;
+}
+
+#download-excel {
+  background-color: #52b0d8;
+  color: #f0f5f1;
+}
+#download-excel:hover {
+  background-color: #3a8aad;
+}
 </style>
 </head>
 <body>
@@ -171,19 +234,27 @@
   <button id="sort-toggle" style="padding: 8px 14px; font-size: 0.9rem;">Sort: Score</button>
 </div>
 
-<div class="plants">
-  <h2>Select Plants</h2>
-  <div id="search-container">
-    <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
-    <div id="suggestions" style="display:none;"></div>
+<div id="main-container">
+  <!-- Left column -->
+  <div id="left-panel">
+    <h2>Select Plants</h2>
+    <div id="search-container">
+      <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
+      <div id="suggestions" style="display:none;"></div>
+    </div>
+    <div id="selected-plants"></div>
+    <div id="button-row">
+      <button id="find-common">Find Common Chemicals</button>
+      <button id="clear-chemicals">Clear All Chemicals</button>
+      <button id="download-excel">Download as Excel</button>
+    </div>
   </div>
-  <div id="selected-plants"></div>
-  <button id="find-common">Find Common Chemicals</button>
-  <button id="clear-chemicals" style="background-color: #a83232; margin-left: 10px;">Clear All Chemicals</button>
-  <button id="download-excel" style="background-color: #52b0d8; margin-left: 10px;">Download as Excel</button>
-</div>
 
-<div class="results" id="results"></div>
+  <!-- Right column -->
+  <div id="right-panel">
+    <div class="results" id="results"></div>
+  </div>
+</div>
 
 <script>
 
