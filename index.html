@@ -190,7 +190,93 @@ body {
   .results li {
     margin-bottom: 6px;
   }
-  
+ /* Single column layout */
+#main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 900px;
+  margin: 30px auto;
+}
+
+/* Search bar takes full width of buttons */
+#search-container {
+  width: 100%;
+}
+
+#plant-search {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  border: 1.8px solid #a7c4a0;
+  border-radius: 10px;
+  outline-offset: 2px;
+  outline-color: #6a994e;
+  background-color: #f0f5f1;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 1px 4px rgba(106, 153, 78, 0.15);
+}
+#plant-search:focus {
+  border-color: #52734d;
+  box-shadow: 0 0 8px rgba(82, 115, 77, 0.5);
+  background-color: #e6f0e8;
+}
+
+/* Buttons row */
+#button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+#button-row button {
+  flex: 1; /* each button stretches equally */
+  min-width: 140px;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Custom button colors */
+#find-common {
+  background-color: #52734d;
+  color: #f0f5f1;
+}
+#find-common:hover {
+  background-color: #3e5c34;
+}
+
+#clear-chemicals {
+  background-color: #a83232;
+  color: #f0f5f1;
+}
+#clear-chemicals:hover {
+  background-color: #7f1d1d;
+}
+
+#download-excel {
+  background-color: #52b0d8;
+  color: #f0f5f1;
+}
+#download-excel:hover {
+  background-color: #3a8aad;
+}
+
+#sort-toggle {
+  background-color: #6a994e;
+  color: #f0f5f1;
+}
+#sort-toggle:hover {
+  background-color: #52734d;
+} 
   /* Two-column layout */
 #main-container {
   display: flex;
@@ -268,20 +354,28 @@ body {
 </div>
 
 <div id="main-container">
-  <!-- Left column -->
-  <div id="left-panel">
-    <h2>Select Plants</h2>
-    <div id="search-container">
-      <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
-      <div id="suggestions" style="display:none;"></div>
-    </div>
-    <div id="selected-plants"></div>
+  
+  <h2>Select Plants</h2>
+  
+  <!-- Search bar -->
+  <div id="search-container">
+    <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
+    <div id="suggestions" style="display:none;"></div>
   </div>
 
-  <!-- Right column -->
-  <div id="right-panel">
-    <div class="results" id="results"></div>
+  <!-- Selected plants -->
+  <div id="selected-plants"></div>
+
+  <!-- Buttons row -->
+  <div id="button-row">
+    <button id="find-common">Find Common Chemicals</button>
+    <button id="clear-chemicals">Clear All Chemicals</button>
+    <button id="download-excel">Download as Excel</button>
+    <button id="sort-toggle">Sort: Score</button>
   </div>
+
+  <!-- Results below buttons -->
+  <div class="results" id="results"></div>
 </div>
 
 <script>
