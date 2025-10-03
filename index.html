@@ -346,6 +346,12 @@ body {
 <body>
 <h1>PhytoFinder</h1>
 
+<!-- Search bar -->
+<div id="search-container">
+  <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
+  <div id="suggestions" style="display:none;"></div>
+</div>
+
 <div id="button-row">
   <button id="find-common">Find Common Chemicals</button>
   <button id="clear-chemicals">Clear All Chemicals</button>
@@ -356,16 +362,9 @@ body {
 <div id="main-container">
   
   <h2>Select Plants</h2>
-  
-  <!-- Search bar -->
-  <div id="search-container">
-    <input type="text" id="plant-search" placeholder="Search plants..." autocomplete="off" />
-    <div id="suggestions" style="display:none;"></div>
-  </div>
 
   <!-- Selected plants -->
   <div id="selected-plants"></div>
-
 
   <!-- Results below buttons -->
   <div class="results" id="results"></div>
